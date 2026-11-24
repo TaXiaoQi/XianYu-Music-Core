@@ -1,0 +1,8 @@
+# Rust 构建缓存
+/target/
+
+# 示例测试素材（体积大，不入库）
+/examples/fixtures/
+
+# 本地构建注入（百度 OAuth 密钥，永不入 git）
+.cargo/config.toml
