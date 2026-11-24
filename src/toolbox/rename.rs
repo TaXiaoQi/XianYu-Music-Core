@@ -197,11 +197,23 @@ pub fn preview_rename(
     Ok(results)
 }
 
-pub fn apply_rename(operations: Vec<RenameOperation>) -> Result<u32, String> {
+/// 执行重命名。`allowed_roots` 为 `Some` 时（桌面端），操作路径必须落在白名单
+/// 目录（音乐库文件夹）内，白名单为空直接报错；`None` 时（移动/手表端）不做
+/// 目录范围限制。
+pub fn apply_rename(
+    operations: Vec<RenameOperation>,
+    allowed_roots: Option<&[PathBuf]>,
+) -> Result<u32, String> {
+    if let Some(roots) = allowed_roots {
+        if roots.is_empty() {
+            return Err("音乐库为空，请先在音乐库中添加文件夹".to_string());
+        }
+    }
+
     let mut success_count = 0;
 
     for mut op in operations {
-        let validated_path = path_validator::validate_path(&op.original_path, None)?;
+        let validated_path = path_validator::validate_path(&op.original_path, allowed_roots)?;
         op.original_path = validated_path.to_string_lossy().to_string();
         op.new_name = path_validator::sanitize_filename_component(&op.new_name)?;
         let src = PathBuf::from(&op.original_path);
