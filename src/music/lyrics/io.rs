@@ -1,6 +1,7 @@
 //! 歌词持久化 I/O：sidecar LRC 读写、嵌入式标签写入、远程（WebDAV）歌词读取。
 
 use super::build_structured_lyrics_payload;
+use super::codec::decode_lyrics_file_bytes;
 use crate::music::tags::{
     extract_embedded_lyrics, extract_embedded_lyrics_match, read_tagged_file_from_path,
 };
@@ -9,7 +10,6 @@ use crate::music::utils::normalize_path;
 use crate::remote::cache::is_remote_uri;
 use crate::remote::repository::{get_song_cache_path, get_source_for_remote_uri};
 use crate::remote::webdav;
-use encoding_rs::{GBK, UTF_16BE, UTF_16LE};
 use lofty::file::TaggedFileExt;
 use lofty::tag::{ItemKey, ItemValue, Tag, TagItem};
 use std::fs;
@@ -238,23 +238,6 @@ pub async fn get_song_lyrics(
     }
 }
 
-pub fn decode_lyrics_file_bytes(bytes: &[u8]) -> String {
-    if bytes.starts_with(&[0xff, 0xfe]) {
-        let (decoded, _, _) = UTF_16LE.decode(&bytes[2..]);
-        return decoded.trim_start_matches('\u{feff}').to_string();
-    }
-    if bytes.starts_with(&[0xfe, 0xff]) {
-        let (decoded, _, _) = UTF_16BE.decode(&bytes[2..]);
-        return decoded.trim_start_matches('\u{feff}').to_string();
-    }
-    if let Ok(text) = std::str::from_utf8(bytes) {
-        return text.trim_start_matches('\u{feff}').to_string();
-    }
-
-    let (decoded, _, _) = GBK.decode(bytes);
-    decoded.trim_start_matches('\u{feff}').to_string()
-}
-
 /// 读取用户主动选择的 LRC 文件。只允许歌词扩展名，并限制大小以避免误选大文件。
 pub fn read_lyrics_file(path: String) -> Result<String, String> {
     const MAX_LYRICS_FILE_SIZE: u64 = 2 * 1024 * 1024;
@@ -354,6 +337,7 @@ pub async fn save_song_lyrics(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use encoding_rs::GBK;
     use rusqlite::{params, Connection};
     use std::time::{SystemTime, UNIX_EPOCH};
 
