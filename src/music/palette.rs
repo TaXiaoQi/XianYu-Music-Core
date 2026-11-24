@@ -478,6 +478,23 @@ pub fn extract_palette(
     Ok(extract_palette_from_image(&img, count, color_boost, depth))
 }
 
+/// 对已加载的图片字节提取调色板（宿主自带图片加载通道时复用，纯 CPU 运算）。
+///
+/// 字节解码失败时返回静态回退调色板，保证调用方始终可拿到非空结果。
+pub fn extract_palette_from_bytes(
+    bytes: &[u8],
+    count: usize,
+    color_boost: f64,
+    depth: f64,
+) -> Vec<String> {
+    let count = if count == 0 { 4 } else { count };
+
+    match image::load_from_memory(bytes) {
+        Ok(img) => extract_palette_from_image(&img, count, color_boost, depth),
+        Err(_) => fallback_palette(count),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
