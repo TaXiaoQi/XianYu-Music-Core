@@ -10,8 +10,19 @@ use std::sync::OnceLock;
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
 
+static CLIENT_OVERRIDE: OnceLock<Client> = OnceLock::new();
+
+/// 允许嵌入方在启动早期覆盖共享客户端（桌面端注入带系统代理支持的
+/// netproxy 客户端）。仅第一次调用生效，重复调用返回 `Err(客户端)`。
+pub fn override_shared_client(client: Client) -> Result<(), Client> {
+    CLIENT_OVERRIDE.set(client)
+}
+
 pub fn shared_client() -> &'static Client {
     // shared_client
+    if let Some(client) = CLIENT_OVERRIDE.get() {
+        return client;
+    }
     static CLIENT: OnceLock<Client> = OnceLock::new();
     CLIENT.get_or_init(|| {
         Client::builder()

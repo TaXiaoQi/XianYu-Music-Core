@@ -12,6 +12,18 @@ pub trait SecretStore: Send + Sync {
     fn read(&self, source_id: &str) -> Option<String>;
     fn write(&self, source_id: &str, password: &str) -> Result<(), String>;
     fn delete(&self, source_id: &str);
+
+    /// 真实凭据管理器应返回 `true`：写入校验失败时拒绝保存音源，
+    /// 而不是把密码明文回退到数据库（Noop 存储保持默认 `false`）。
+    fn requires_verified_write(&self) -> bool {
+        false
+    }
+}
+
+/// 安装平台凭据存储实现（桌面端在启动早期注入 keyring 实现）。
+/// 仅第一次调用生效，重复安装返回 `Err(原实现)`。
+pub fn install_secret_store(store: Box<dyn SecretStore>) -> Result<(), Box<dyn SecretStore>> {
+    SECRET_STORE.set(store)
 }
 
 /// 无操作存储：读写均不落盘，密码由数据库字段承载。
@@ -58,7 +70,7 @@ fn delete_password_from_store(source_id: &str) {
 }
 
 fn attach_store_password(mut source: RemoteSourceCredentials) -> RemoteSourceCredentials {
-    if source.password.is_none() {
+    if source.password.as_deref().map_or(true, |p| p.is_empty()) {
         source.password = read_password_from_store(&source.id);
     }
     source
@@ -222,6 +234,11 @@ pub fn save_source(
     let created_at = existing.map(|source| source.created_at).unwrap_or(now);
     let db_password = match password.as_deref() {
         Some(password) if write_password_to_store_verified(&id, password) => None,
+        // 真实凭据管理器写入失败：拒绝保存，绝不把密码明文落库。
+        Some(_) if secret_store().requires_verified_write() => {
+            return Err("系统凭据管理器不可用，无法安全保存密码".to_string());
+        }
+        // Noop 存储（移动端）：密码保留在数据库字段。
         Some(password) => Some(password.to_string()),
         None => None,
     };

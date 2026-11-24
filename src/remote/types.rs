@@ -46,21 +46,28 @@ pub struct RemoteSourceCredentials {
     pub updated_at: i64,
 }
 
+impl RemoteSourceCredentials {
+    /// 剥离密码字段，转成可下发给前端的公开视图。
+    pub fn into_public(self) -> RemoteSource {
+        RemoteSource {
+            id: self.id,
+            name: self.name,
+            provider: self.provider,
+            base_url: self.base_url,
+            username: self.username,
+            root_path: self.root_path,
+            enabled: self.enabled,
+            last_sync_at: self.last_sync_at,
+            last_sync_error: self.last_sync_error,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
+        }
+    }
+}
+
 impl From<RemoteSourceCredentials> for RemoteSource {
     fn from(value: RemoteSourceCredentials) -> Self {
-        Self {
-            id: value.id,
-            name: value.name,
-            provider: value.provider,
-            base_url: value.base_url,
-            username: value.username,
-            root_path: value.root_path,
-            enabled: value.enabled,
-            last_sync_at: value.last_sync_at,
-            last_sync_error: value.last_sync_error,
-            created_at: value.created_at,
-            updated_at: value.updated_at,
-        }
+        value.into_public()
     }
 }
 
@@ -117,6 +124,41 @@ pub struct RemoteCacheUsage {
     pub files: usize,
     pub limit_bytes: u64,
 }
+
+/// 连接测试结果。
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RemoteConnectionResult {
+    pub ok: bool,
+    pub message: String,
+}
+
+/// 单文件下载进度事件负载（事件名 remote-download-progress）。
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RemoteDownloadProgress {
+    pub uri: String,
+    pub downloaded: u64,
+    pub total: Option<u64>,
+    pub percent: Option<f64>,
+    pub done: bool,
+    pub failed: bool,
+    pub message: Option<String>,
+}
+
+/// 同步进度事件负载（事件名 remote-sync-progress）。
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RemoteSyncProgress {
+    pub source_id: String,
+    pub phase: String,
+    pub current: usize,
+    pub total: usize,
+    pub message: String,
+    pub done: bool,
+    pub failed: bool,
+}
+
 /// 解析远程源 JSON 为凭据结构。
 pub fn parse_remote_source(json: &str) -> Result<RemoteSourceCredentials, String> {
     serde_json::from_str(json).map_err(|e| format!("WebDAV 源 JSON 无效: {e}"))
