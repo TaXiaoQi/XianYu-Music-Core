@@ -178,7 +178,27 @@ pub async fn serve_media(
         MediaPayload::Remote {
             url, headers: uh, ..
         } => serve_remote(&registry.client_for_remote(), &url, &uh, &headers).await,
-        MediaPayload::Cover { .. } => error_response(StatusCode::NOT_FOUND, "not a media token"),
+        MediaPayload::Cover { .. } | MediaPayload::Lyric { .. } => {
+            error_response(StatusCode::NOT_FOUND, "not a media token")
+        }
+    }
+}
+
+/// GET /media/lyric/{token}：伺服歌词原文（自家渲染端消费）。
+pub async fn serve_lyric(
+    State(registry): State<Arc<MediaRegistry>>,
+    Path(token): Path<String>,
+) -> Response {
+    let Some(entry) = registry.get(&token) else {
+        return error_response(StatusCode::NOT_FOUND, "token not found");
+    };
+    match entry.payload {
+        MediaPayload::Lyric { text } => simple_response(
+            StatusCode::OK,
+            vec![("CONTENT-TYPE", "text/plain; charset=utf-8".into())],
+            Body::from(text),
+        ),
+        _ => error_response(StatusCode::NOT_FOUND, "not a lyric token"),
     }
 }
 
@@ -190,12 +210,52 @@ pub async fn serve_cover(
     let Some(entry) = registry.get(&token) else {
         return error_response(StatusCode::NOT_FOUND, "token not found");
     };
-    let MediaPayload::Cover { url, headers } = entry.payload else {
-        return error_response(StatusCode::NOT_FOUND, "not a cover token");
+    match entry.payload {
+        MediaPayload::Cover { url, headers } => serve_remote_cover(&registry, &url, &headers).await,
+        // 本地曲库歌曲的封面是磁盘图片路径，castStore 按本地载荷注册
+        // （kind:'local'）；不读盘伺服会 404，被投端拿不到封面。
+        MediaPayload::LocalFile { path } => serve_local_cover(&path).await,
+        MediaPayload::Remote { .. } | MediaPayload::Lyric { .. } => {
+            error_response(StatusCode::NOT_FOUND, "not a cover token")
+        }
+    }
+}
+
+async fn serve_local_cover(path: &str) -> Response {
+    let bytes = match tokio::fs::read(path).await {
+        Ok(b) => b,
+        Err(e) => return error_response(StatusCode::NOT_FOUND, &format!("cover open failed: {e}")),
     };
+    let lower = path.to_ascii_lowercase();
+    let content_type = if lower.ends_with(".png") {
+        "image/png"
+    } else if lower.ends_with(".webp") {
+        "image/webp"
+    } else if lower.ends_with(".gif") {
+        "image/gif"
+    } else if lower.ends_with(".bmp") {
+        "image/bmp"
+    } else {
+        "image/jpeg"
+    };
+    simple_response(
+        StatusCode::OK,
+        vec![
+            ("CONTENT-TYPE", content_type.to_string()),
+            ("ACCEPT-RANGES", "none".into()),
+        ],
+        Body::from(bytes),
+    )
+}
+
+async fn serve_remote_cover(
+    registry: &Arc<MediaRegistry>,
+    url: &str,
+    headers: &BTreeMap<String, String>,
+) -> Response {
     let client = registry.client_for_remote();
-    let mut req = client.get(&url);
-    for (k, v) in &headers {
+    let mut req = client.get(url);
+    for (k, v) in headers {
         if let (Ok(name), Ok(val)) = (
             k.parse::<reqwest::header::HeaderName>(),
             v.parse::<reqwest::header::HeaderValue>(),

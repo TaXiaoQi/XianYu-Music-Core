@@ -150,6 +150,7 @@ impl DlnaCore {
         dev: &DlnaDevice,
         media: MediaPayload,
         cover: Option<MediaPayload>,
+        lyric: Option<MediaPayload>,
         title: &str,
         artist: &str,
         album: &str,
@@ -169,11 +170,19 @@ impl DlnaCore {
             }
             None => None,
         };
+        let lyric_url = match lyric {
+            Some(MediaPayload::Lyric { text }) if !text.trim().is_empty() => {
+                let t = self.registry.create(MediaPayload::Lyric { text });
+                Some(format!("{base}/media/lyric/{t}"))
+            }
+            _ => None,
+        };
 
         let duration = soap::format_upnp_time(duration_ms as f64 / 1000.0);
         let didl = build_didl(
             &media_url,
             cover_url.as_ref().map(|(u, _)| u.as_str()),
+            lyric_url.as_deref(),
             title,
             artist,
             album,
@@ -393,6 +402,7 @@ impl DlnaCore {
 fn build_didl(
     media_url: &str,
     cover_url: Option<&str>,
+    lyric_url: Option<&str>,
     title: &str,
     artist: &str,
     album: &str,
@@ -406,8 +416,12 @@ fn build_didl(
             )
         })
         .unwrap_or_default();
+    // 自定义歌词元素：仅自家渲染端（移动端 DMR）消费，经本机 httpd 伺服原文
+    let lyric = lyric_url
+        .map(|u| format!("<xianyu:lyric>{}</xianyu:lyric>", soap::xml_escape(u)))
+        .unwrap_or_default();
     format!(
-        r#"<DIDL-Lite xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/"><item id="0" restricted="1"><dc:title>{title}</dc:title><dc:creator>{artist}</dc:creator><upnp:artist>{artist}</upnp:artist><upnp:album>{album}</upnp:album><upnp:class>object.item.audioItem.musicTrack</upnp:class><res duration="{duration}">{url}</res>{cover}</item></DIDL-Lite>"#,
+        r#"<DIDL-Lite xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/" xmlns:xianyu="urn:xianyu:media"><item id="0" restricted="1"><dc:title>{title}</dc:title><dc:creator>{artist}</dc:creator><upnp:artist>{artist}</upnp:artist><upnp:album>{album}</upnp:album><upnp:class>object.item.audioItem.musicTrack</upnp:class><res duration="{duration}">{url}</res>{cover}{lyric}</item></DIDL-Lite>"#,
         title = soap::xml_escape(title),
         artist = soap::xml_escape(artist),
         album = soap::xml_escape(album),
@@ -420,11 +434,27 @@ fn build_didl(
 mod tests {
     use super::*;
 
+    /// 回归：ensure_httpd 返回后监听必须仍存活。曾经 HttpServer（持有优雅停机
+    /// Sender）在 ensure_httpd 末尾被 drop，graceful shutdown 立即触发，监听
+    /// 秒死，渲染器与投放媒体伺服整体不可用（DOA bug）。
+    #[tokio::test]
+    async fn ensure_httpd_keeps_listener_alive() {
+        let core = DlnaCore::shared();
+        let port = core.ensure_httpd().await.expect("httpd should bind");
+        // 给潜在的错误 shutdown 路径留出跑完的时间窗
+        tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+        let resp = reqwest::get(format!("http://127.0.0.1:{port}/dlna/desc.xml"))
+            .await
+            .expect("listener must still be alive after ensure_httpd returns");
+        assert_eq!(resp.status(), reqwest::StatusCode::NOT_FOUND);
+    }
+
     #[test]
     fn didl_contains_metadata() {
         let d = build_didl(
             "http://1.2.3.4/media/t",
             Some("http://1.2.3.4/media/cover/t"),
+            Some("http://1.2.3.4/media/lyric/t"),
             "歌名<A>",
             "歌手",
             "专辑",
@@ -434,11 +464,27 @@ mod tests {
         assert!(d.contains("歌名&lt;A&gt;"));
         assert!(d.contains("duration=\"0:03:21\""));
         assert!(d.contains("albumArtURI"));
+        assert!(d.contains("<xianyu:lyric>http://1.2.3.4/media/lyric/t</xianyu:lyric>"));
     }
 
     #[test]
     fn didl_without_cover() {
-        let d = build_didl("http://x", None, "t", "a", "b", "0:00:30");
+        let d = build_didl("http://x", None, None, "t", "a", "b", "0:00:30");
         assert!(!d.contains("albumArtURI"));
+        assert!(!d.contains("xianyu:lyric>http"));
+    }
+
+    #[test]
+    fn didl_lyric_escaped() {
+        let d = build_didl(
+            "http://x",
+            None,
+            Some("http://x/media/lyric/a<b>&c"),
+            "t",
+            "a",
+            "b",
+            "0:00:30",
+        );
+        assert!(d.contains("http://x/media/lyric/a&lt;b&gt;&amp;c"));
     }
 }

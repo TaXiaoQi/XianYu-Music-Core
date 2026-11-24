@@ -28,7 +28,8 @@ fn lan_ipv4() -> Option<Ipv4Addr> {
 }
 
 /// 组播 socket 绑定（三端复用；SO_REUSEADDR 允许多进程共用 1900）。
-fn bind_multicast_socket() -> std::io::Result<Socket> {
+/// pub：桌面端 control_channel（手机联动发现）也复用此绑定。
+pub fn bind_multicast_socket() -> std::io::Result<Socket> {
     let sock = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP))?;
     sock.set_reuse_address(true)?;
     #[cfg(unix)]
@@ -53,7 +54,8 @@ fn bind_multicast_socket() -> std::io::Result<Socket> {
     Ok(sock)
 }
 
-fn tokio_udp_from_socket(sock: Socket) -> std::io::Result<UdpSocket> {
+/// pub：桌面端 control_channel（手机联动发现）也复用此转换。
+pub fn tokio_udp_from_socket(sock: Socket) -> std::io::Result<UdpSocket> {
     sock.set_nonblocking(true)?;
     let std_sock: std::net::UdpSocket = sock.into();
     UdpSocket::from_std(std_sock)

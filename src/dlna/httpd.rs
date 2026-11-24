@@ -1,7 +1,7 @@
 //! axum HTTP 服务组装：媒体代理 + DMR 控制端点共端口（双端同步一份代码，勿在本端私自改动）。
 
 use super::dmr;
-use super::media_server::{serve_cover, serve_media, MediaRegistry};
+use super::media_server::{serve_cover, serve_lyric, serve_media, MediaRegistry};
 use axum::body::Body;
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
@@ -100,6 +100,7 @@ pub async fn start(state: AppState) -> Result<HttpServer, String> {
     // DMR 路由用完整 AppState，合并后统一以 AppState 提供外层状态。
     let media_routes = Router::new()
         .route("/media/cover/{token}", get(serve_cover))
+        .route("/media/lyric/{token}", get(serve_lyric))
         .route("/media/{token}", get(serve_media).head(serve_media))
         .with_state(state.registry.clone());
     let app = Router::new()
@@ -147,7 +148,9 @@ async fn bind_and_serve(app: Router) -> Result<(u16, watch::Sender<bool>), Strin
                 }
             }
         });
-        let _ = server.await;
+        if let Err(e) = server.await {
+            eprintln!("[dlna] http server exited: {e}");
+        }
     });
 
     Ok((port, shutdown_tx))
