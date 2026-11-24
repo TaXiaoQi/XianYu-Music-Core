@@ -212,3 +212,11 @@ pub struct LibraryFolder {
     pub path: String,
     pub song_count: usize,
 }
+
+/// 文件夹视图（folder_as_playlists）里的一个分组。
+#[derive(Serialize)]
+pub struct GeneratedFolder {
+    pub name: String,
+    pub path: String,
+    pub songs: Vec<Song>,
+}
