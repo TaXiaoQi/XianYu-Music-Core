@@ -76,6 +76,10 @@ libc = "0.2"
 [target.'cfg(target_os = "ios")'.dependencies]
 cpal = "0.15"
 
+# 网络盘判定（is_network_share_path 的 GetDriveTypeW），版本对齐桌面端 0.59
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_Storage_FileSystem"] }
+
 [dev-dependencies]
 symphonia = { version = "0.5.5", default-features = false, features = ["flac"] }
 
