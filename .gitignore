@@ -6,3 +6,4 @@
 
 # 本地构建注入（百度 OAuth 密钥，永不入 git）
 .cargo/config.toml
+.idea/
