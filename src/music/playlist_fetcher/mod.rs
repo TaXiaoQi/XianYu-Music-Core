@@ -10,4 +10,5 @@ pub mod qishui;
 mod tx;
 mod wy;
 
+pub use common::PlaylistImportResult;
 pub use orchestrator::fetch_playlist_from_source;
