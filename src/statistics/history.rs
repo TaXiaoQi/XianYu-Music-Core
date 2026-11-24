@@ -1,6 +1,6 @@
 use super::*;
 
-pub(crate) fn aggregate_behavior_stats(
+pub fn aggregate_behavior_stats(
     conn: &rusqlite::Connection,
 ) -> Result<BehaviorStats, String> {
     ensure_statistics_aggregates(conn)?;
@@ -143,7 +143,7 @@ pub(crate) fn aggregate_behavior_stats(
     })
 }
 
-pub(crate) fn insert_history_event(
+pub fn insert_history_event(
     conn: &rusqlite::Connection,
     normalized_path: &str,
     played_at: i64,

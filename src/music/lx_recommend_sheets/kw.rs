@@ -9,7 +9,7 @@ fn kw_tag_list_url() -> &'static str {
     "http://wapi.kuwo.cn/api/pc/classify/playlist/getTagList?cmd=rcm_keyword_playlist&user=0&prod=kwplayer_pc_9.0.5.0&vipver=9.0.5.0&source=kwplayer_pc_9.0.5.0&loginUid=0&loginSid=0&appUid=76039576"
 }
 
-pub(crate) async fn kw_tags() -> Result<LxRecommendTagsResult, String> {
+pub async fn kw_tags() -> Result<LxRecommendTagsResult, String> {
     let data = tokio::time::timeout(
         Duration::from_secs(6),
         http_get_json(kw_tag_list_url(), &[]),
@@ -78,7 +78,7 @@ pub(crate) async fn kw_tags() -> Result<LxRecommendTagsResult, String> {
     })
 }
 
-pub(crate) async fn kw_sheets_by_tag(
+pub async fn kw_sheets_by_tag(
     tag_id: &str,
     digest: &str,
     page: u32,

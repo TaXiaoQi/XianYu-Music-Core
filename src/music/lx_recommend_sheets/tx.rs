@@ -42,7 +42,7 @@ async fn tx_get_json(url: &str, timeout_secs: u64, err: &str) -> Result<serde_js
     serde_json::from_str(strip_jsonp(&body)).map_err(|e| format!("{} invalid JSON: {}", err, e))
 }
 
-pub(crate) async fn tx_tags() -> Result<LxRecommendTagsResult, String> {
+pub async fn tx_tags() -> Result<LxRecommendTagsResult, String> {
     let data = tx_get_json(tx_tags_url(), 6, "TX recommend tags").await?;
 
     // data.categories[1..]：首组"热门"仅含"全部"，默认标签由空 tag 覆盖，不进分组
@@ -97,7 +97,7 @@ pub(crate) async fn tx_tags() -> Result<LxRecommendTagsResult, String> {
     })
 }
 
-pub(crate) async fn tx_sheets_by_tag(
+pub async fn tx_sheets_by_tag(
     tag_id: &str,
     page: u32,
 ) -> Result<LxRecommendSheetsResult, String> {

@@ -1,24 +1,24 @@
 use super::*;
 
-pub(crate) const MAX_GROUP_TOLERANCE_MS: u32 = 50;
-pub(crate) const ENHANCED_TRAILING_WORD_DURATION_MS: u32 = 400;
+pub const MAX_GROUP_TOLERANCE_MS: u32 = 50;
+pub const ENHANCED_TRAILING_WORD_DURATION_MS: u32 = 400;
 
 // ==================== Regex caches (module-level, compiled once) ====================
-pub(crate) static XML_TAG_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static TTML_PARAGRAPH_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static TTML_BEGIN_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static TTML_END_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static TTML_SPAN_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static TTML_ROLE_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static CONTRACTION_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static ENGLISH_DIGRAPH_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static ENGLISH_CONSONANT_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static ROMANIZATION_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) const MAX_GROUP_SIZE: usize = 3;
-pub(crate) const ALIGNMENT_HIGH_WINDOW_MS: u32 = 300;
-pub(crate) const ALIGNMENT_MEDIUM_WINDOW_MS: u32 = 800;
-pub(crate) const ALIGNMENT_LOW_WINDOW_MS: u32 = 1500;
-pub(crate) const MIN_TRACK_MATCH_SCORE: f64 = 2.6;
+pub static XML_TAG_RE: OnceLock<Regex> = OnceLock::new();
+pub static TTML_PARAGRAPH_RE: OnceLock<Regex> = OnceLock::new();
+pub static TTML_BEGIN_RE: OnceLock<Regex> = OnceLock::new();
+pub static TTML_END_RE: OnceLock<Regex> = OnceLock::new();
+pub static TTML_SPAN_RE: OnceLock<Regex> = OnceLock::new();
+pub static TTML_ROLE_RE: OnceLock<Regex> = OnceLock::new();
+pub static CONTRACTION_RE: OnceLock<Regex> = OnceLock::new();
+pub static ENGLISH_DIGRAPH_RE: OnceLock<Regex> = OnceLock::new();
+pub static ENGLISH_CONSONANT_RE: OnceLock<Regex> = OnceLock::new();
+pub static ROMANIZATION_RE: OnceLock<Regex> = OnceLock::new();
+pub const MAX_GROUP_SIZE: usize = 3;
+pub const ALIGNMENT_HIGH_WINDOW_MS: u32 = 300;
+pub const ALIGNMENT_MEDIUM_WINDOW_MS: u32 = 800;
+pub const ALIGNMENT_LOW_WINDOW_MS: u32 = 1500;
+pub const MIN_TRACK_MATCH_SCORE: f64 = 2.6;
 
 #[derive(Serialize, Clone, Debug, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -307,52 +307,52 @@ pub struct StructuredLyricsPayload {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct TrackAlignmentPair {
-    pub(crate) main_index: usize,
-    pub(crate) aux_index: usize,
-    pub(crate) drift_ms: i64,
-    pub(crate) quality: f64,
+pub struct TrackAlignmentPair {
+    pub main_index: usize,
+    pub aux_index: usize,
+    pub drift_ms: i64,
+    pub quality: f64,
 }
 
 #[derive(Clone, Debug, Default)]
-pub(crate) struct TrackAlignment {
-    pub(crate) pairs: Vec<TrackAlignmentPair>,
-    pub(crate) main_coverage: f64,
-    pub(crate) aux_coverage: f64,
-    pub(crate) weighted_score: f64,
+pub struct TrackAlignment {
+    pub pairs: Vec<TrackAlignmentPair>,
+    pub main_coverage: f64,
+    pub aux_coverage: f64,
+    pub weighted_score: f64,
 }
 
 #[derive(Clone, Debug, Default)]
-pub(crate) struct TrackRoleScores {
-    pub(crate) main: f64,
-    pub(crate) translation: f64,
-    pub(crate) romanization: f64,
+pub struct TrackRoleScores {
+    pub main: f64,
+    pub translation: f64,
+    pub romanization: f64,
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct ParserCandidate {
-    pub(crate) source: ParsedLineSourceFormat,
-    pub(crate) lines: Vec<ParsedLine>,
+pub struct ParserCandidate {
+    pub source: ParsedLineSourceFormat,
+    pub lines: Vec<ParsedLine>,
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct LayoutTemplateResolution {
-    pub(crate) display_track_index: usize,
-    pub(crate) track_roles: Vec<Option<LyricTrackRole>>,
+pub struct LayoutTemplateResolution {
+    pub display_track_index: usize,
+    pub track_roles: Vec<Option<LyricTrackRole>>,
 }
 
-pub(crate) fn clamp01(value: f64) -> f64 {
+pub fn clamp01(value: f64) -> f64 {
     value.clamp(0.0, 1.0)
 }
 
-pub(crate) fn average(values: &[f64]) -> f64 {
+pub fn average(values: &[f64]) -> f64 {
     if values.is_empty() {
         return 0.0;
     }
     values.iter().sum::<f64>() / values.len() as f64
 }
 
-pub(crate) fn track_word_coverage(track: &LyricTrack) -> f64 {
+pub fn track_word_coverage(track: &LyricTrack) -> f64 {
     track
         .lines
         .iter()
@@ -366,16 +366,16 @@ pub(crate) fn track_word_coverage(track: &LyricTrack) -> f64 {
         / track.lines.len().max(1) as f64
 }
 
-pub(crate) fn sanitize_line_text(text: &str) -> String {
+pub fn sanitize_line_text(text: &str) -> String {
     text.replace('\u{200b}', "").trim().to_string()
 }
 
-pub(crate) fn sanitize_word_text(text: &str) -> String {
+pub fn sanitize_word_text(text: &str) -> String {
     text.replace(['\u{200b}', '\u{2063}'], "")
 }
 
 /// 相邻两词是否处于拉丁文词边界（仅按 ASCII 判断，中文/日文等文本不受影响）。
-pub(crate) fn latin_word_gap_needed(left: &str, right: &str) -> bool {
+pub fn latin_word_gap_needed(left: &str, right: &str) -> bool {
     let Some(last) = left.chars().next_back() else {
         return false;
     };
@@ -389,7 +389,7 @@ pub(crate) fn latin_word_gap_needed(left: &str, right: &str) -> bool {
 
 /// 拉丁文逐词源缺少单词间隔（词内无空格且间隔词被丢弃）时，
 /// 在相邻两词之间补一个空格，避免英语等歌词单词连在一起。
-pub(crate) fn insert_latin_word_gaps(words: &mut [ParsedWord]) {
+pub fn insert_latin_word_gaps(words: &mut [ParsedWord]) {
     if words.len() < 2 {
         return;
     }

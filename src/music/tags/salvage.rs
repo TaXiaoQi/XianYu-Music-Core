@@ -4,7 +4,7 @@ use super::*;
 
 /// 将 QMC 加密文件解密后交给 lofty 读取标签。
 /// 先尝试流式解密读取器（内存效率高），按解密后格式提示文件类型。
-pub(crate) fn read_qmc_tagged_file(path: &Path, options: ParseOptions) -> Option<TaggedFile> {
+pub fn read_qmc_tagged_file(path: &Path, options: ParseOptions) -> Option<TaggedFile> {
     let crypto = crate::player::qmc2::detect_qmc_crypto(path)?;
     let file = File::open(path).ok()?;
     let reader = crate::player::qmc2::QmcDecryptReader::new(file, crypto);
@@ -29,7 +29,7 @@ pub(crate) fn read_qmc_tagged_file(path: &Path, options: ParseOptions) -> Option
 }
 
 /// 将扩展名映射为 lofty FileType（仅支持 QMC 解密后的常见格式）。
-pub(crate) fn lofty_file_type_from_ext(ext: &str) -> Result<FileType, ()> {
+pub fn lofty_file_type_from_ext(ext: &str) -> Result<FileType, ()> {
     Ok(match ext {
         "flac" => FileType::Flac,
         "mp3" => FileType::Mpeg,
@@ -39,25 +39,25 @@ pub(crate) fn lofty_file_type_from_ext(ext: &str) -> Result<FileType, ()> {
     })
 }
 
-pub(crate) fn is_wav_path(path: &Path) -> bool {
+pub fn is_wav_path(path: &Path) -> bool {
     path.extension()
         .and_then(|ext| ext.to_str())
         .map(|ext| matches!(ext.to_ascii_lowercase().as_str(), "wav" | "wave"))
         .unwrap_or(false)
 }
 
-pub(crate) fn is_mpeg_path(path: &Path) -> bool {
+pub fn is_mpeg_path(path: &Path) -> bool {
     path.extension()
         .and_then(|ext| ext.to_str())
         .map(|ext| matches!(ext.to_ascii_lowercase().as_str(), "mp3" | "mpeg" | "mpga"))
         .unwrap_or(false)
 }
 
-pub(crate) fn is_bad_timestamp_error(error: &lofty::error::LoftyError) -> bool {
+pub fn is_bad_timestamp_error(error: &lofty::error::LoftyError) -> bool {
     matches!(error.kind(), lofty::error::ErrorKind::BadTimestamp(_))
 }
 
-pub(crate) fn read_salvaged_id3_tags(path: &Path, read_cover_art: bool) -> Result<TaggedFile, ()> {
+pub fn read_salvaged_id3_tags(path: &Path, read_cover_art: bool) -> Result<TaggedFile, ()> {
     let file = File::open(path).map_err(|_| ())?;
     let mut reader = BufReader::new(file);
     let mut tags = Vec::new();
@@ -73,7 +73,7 @@ pub(crate) fn read_salvaged_id3_tags(path: &Path, read_cover_art: bool) -> Resul
     ))
 }
 
-pub(crate) fn read_salvaged_wav_tags(path: &Path, read_cover_art: bool) -> Result<TaggedFile, ()> {
+pub fn read_salvaged_wav_tags(path: &Path, read_cover_art: bool) -> Result<TaggedFile, ()> {
     let file = File::open(path).map_err(|_| ())?;
     let mut reader = BufReader::new(file);
     let mut tags = Vec::new();
@@ -97,7 +97,7 @@ pub(crate) fn read_salvaged_wav_tags(path: &Path, read_cover_art: bool) -> Resul
     ))
 }
 
-pub(crate) fn read_leading_id3_tag<R>(
+pub fn read_leading_id3_tag<R>(
     reader: &mut R,
     tags: &mut Vec<Tag>,
     read_cover_art: bool,
@@ -128,7 +128,7 @@ where
     Ok(Some(id3_size))
 }
 
-pub(crate) fn leading_id3v2_size(bytes: &[u8]) -> Option<usize> {
+pub fn leading_id3v2_size(bytes: &[u8]) -> Option<usize> {
     if bytes.len() < 10 || &bytes[..3] != b"ID3" {
         return None;
     }
@@ -141,7 +141,7 @@ pub(crate) fn leading_id3v2_size(bytes: &[u8]) -> Option<usize> {
     Some(10 + size)
 }
 
-pub(crate) fn parse_wav_chunks<R>(reader: &mut R, read_cover_art: bool) -> Result<Vec<Tag>, ()>
+pub fn parse_wav_chunks<R>(reader: &mut R, read_cover_art: bool) -> Result<Vec<Tag>, ()>
 where
     R: Read + Seek,
 {
@@ -192,7 +192,7 @@ where
     Ok(tags)
 }
 
-pub(crate) fn read_chunk<R>(reader: &mut R, size: usize) -> Option<Vec<u8>>
+pub fn read_chunk<R>(reader: &mut R, size: usize) -> Option<Vec<u8>>
 where
     R: Read,
 {
@@ -201,7 +201,7 @@ where
     Some(bytes)
 }
 
-pub(crate) fn prefer_leading_id3v2_text(path: &Path, tagged_file: &mut TaggedFile) {
+pub fn prefer_leading_id3v2_text(path: &Path, tagged_file: &mut TaggedFile) {
     if tagged_file.file_type() != FileType::Mpeg {
         return;
     }
@@ -221,7 +221,7 @@ pub(crate) fn prefer_leading_id3v2_text(path: &Path, tagged_file: &mut TaggedFil
     }
 }
 
-pub(crate) fn read_leading_id3v2_text_tag<R>(reader: &mut R) -> Option<Tag>
+pub fn read_leading_id3v2_text_tag<R>(reader: &mut R) -> Option<Tag>
 where
     R: Read + Seek,
 {
@@ -297,7 +297,7 @@ where
     has_items.then_some(tag)
 }
 
-pub(crate) fn skip_id3v2_extended_header<R>(
+pub fn skip_id3v2_extended_header<R>(
     reader: &mut R,
     major: u8,
     remaining: usize,
@@ -325,7 +325,7 @@ where
     Some(remaining.saturating_sub(4 + skip_size))
 }
 
-pub(crate) fn syncsafe_u32(bytes: &[u8]) -> Option<usize> {
+pub fn syncsafe_u32(bytes: &[u8]) -> Option<usize> {
     if bytes.len() != 4 || bytes.iter().any(|byte| byte & 0x80 != 0) {
         return None;
     }
@@ -338,7 +338,7 @@ pub(crate) fn syncsafe_u32(bytes: &[u8]) -> Option<usize> {
     )
 }
 
-pub(crate) fn id3v2_text_frame_key(frame_id: &str) -> Option<ItemKey> {
+pub fn id3v2_text_frame_key(frame_id: &str) -> Option<ItemKey> {
     match frame_id {
         "TIT2" | "TT2" => Some(ItemKey::TrackTitle),
         "TPE1" | "TP1" => Some(ItemKey::TrackArtist),
@@ -348,7 +348,7 @@ pub(crate) fn id3v2_text_frame_key(frame_id: &str) -> Option<ItemKey> {
     }
 }
 
-pub(crate) fn decode_id3v2_text_frame(data: &[u8]) -> Option<String> {
+pub fn decode_id3v2_text_frame(data: &[u8]) -> Option<String> {
     let (encoding, text_bytes) = data.split_first()?;
     let decoded = match encoding {
         0 => text_bytes.iter().map(|byte| char::from(*byte)).collect(),
@@ -361,7 +361,7 @@ pub(crate) fn decode_id3v2_text_frame(data: &[u8]) -> Option<String> {
     clean_text(decoded.trim_matches('\0'))
 }
 
-pub(crate) fn decode_utf16_with_bom(bytes: &[u8]) -> Option<String> {
+pub fn decode_utf16_with_bom(bytes: &[u8]) -> Option<String> {
     if bytes.starts_with(&[0xFE, 0xFF]) {
         decode_utf16_be(&bytes[2..])
     } else if bytes.starts_with(&[0xFF, 0xFE]) {
@@ -371,7 +371,7 @@ pub(crate) fn decode_utf16_with_bom(bytes: &[u8]) -> Option<String> {
     }
 }
 
-pub(crate) fn decode_utf16_le(bytes: &[u8]) -> Option<String> {
+pub fn decode_utf16_le(bytes: &[u8]) -> Option<String> {
     if bytes.len() % 2 != 0 {
         return None;
     }
@@ -383,7 +383,7 @@ pub(crate) fn decode_utf16_le(bytes: &[u8]) -> Option<String> {
     String::from_utf16(&units).ok()
 }
 
-pub(crate) fn decode_utf16_be(bytes: &[u8]) -> Option<String> {
+pub fn decode_utf16_be(bytes: &[u8]) -> Option<String> {
     if bytes.len() % 2 != 0 {
         return None;
     }
@@ -395,7 +395,7 @@ pub(crate) fn decode_utf16_be(bytes: &[u8]) -> Option<String> {
     String::from_utf16(&units).ok()
 }
 
-pub(crate) fn copy_preferred_id3v2_text(target_tag: &mut Tag, leading_tag: &Tag) {
+pub fn copy_preferred_id3v2_text(target_tag: &mut Tag, leading_tag: &Tag) {
     const KEYS: &[ItemKey] = &[
         ItemKey::TrackTitle,
         ItemKey::TrackArtist,
@@ -410,7 +410,7 @@ pub(crate) fn copy_preferred_id3v2_text(target_tag: &mut Tag, leading_tag: &Tag)
     }
 }
 
-pub(crate) fn skip_chunk<R>(reader: &mut R, size: u64) -> Result<(), ()>
+pub fn skip_chunk<R>(reader: &mut R, size: u64) -> Result<(), ()>
 where
     R: Seek,
 {
@@ -420,7 +420,7 @@ where
         .map_err(|_| ())
 }
 
-pub(crate) fn has_wav_header<R>(reader: &mut R) -> Result<bool, ()>
+pub fn has_wav_header<R>(reader: &mut R) -> Result<bool, ()>
 where
     R: Read,
 {
@@ -432,13 +432,13 @@ where
     }
 }
 
-pub(crate) fn push_id3_tag(tags: &mut Vec<Tag>, bytes: &[u8], read_cover_art: bool) {
+pub fn push_id3_tag(tags: &mut Vec<Tag>, bytes: &[u8], read_cover_art: bool) {
     if let Ok(tag) = id3::Tag::read_from2(Cursor::new(bytes)) {
         tags.push(lofty_tag_from_id3(tag, read_cover_art));
     }
 }
 
-pub(crate) fn parse_riff_info_list(bytes: &[u8]) -> Option<Tag> {
+pub fn parse_riff_info_list(bytes: &[u8]) -> Option<Tag> {
     if bytes.len() < 4 || &bytes[..4] != b"INFO" {
         return None;
     }
@@ -471,7 +471,7 @@ pub(crate) fn parse_riff_info_list(bytes: &[u8]) -> Option<Tag> {
     has_items.then_some(tag)
 }
 
-pub(crate) fn decode_riff_info_text(raw: &[u8]) -> Option<String> {
+pub fn decode_riff_info_text(raw: &[u8]) -> Option<String> {
     let raw = raw
         .split(|byte| *byte == 0)
         .next()
@@ -505,7 +505,7 @@ pub(crate) fn decode_riff_info_text(raw: &[u8]) -> Option<String> {
     clean_text(&decoded)
 }
 
-pub(crate) fn lofty_tag_from_id3(id3_tag: id3::Tag, read_cover_art: bool) -> Tag {
+pub fn lofty_tag_from_id3(id3_tag: id3::Tag, read_cover_art: bool) -> Tag {
     let mut lofty_tag = Tag::new(TagType::Id3v2);
 
     insert_optional_text(&mut lofty_tag, ItemKey::TrackTitle, id3_tag.title());
@@ -556,7 +556,7 @@ pub(crate) fn lofty_tag_from_id3(id3_tag: id3::Tag, read_cover_art: bool) -> Tag
     lofty_tag
 }
 
-pub(crate) fn insert_optional_text(tag: &mut Tag, key: ItemKey, value: Option<&str>) {
+pub fn insert_optional_text(tag: &mut Tag, key: ItemKey, value: Option<&str>) {
     if let Some(value) = value.and_then(clean_text) {
         let _ = tag.insert_text(key, value);
     }

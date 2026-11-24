@@ -152,11 +152,11 @@ pub struct CastTransportState {
     pub state: String,
 }
 /// 从 JSON 字符串解析设备参数。
-pub(crate) fn parse_device(device_json: &str) -> Result<DlnaDevice, String> {
+pub fn parse_device(device_json: &str) -> Result<DlnaDevice, String> {
     serde_json::from_str(device_json).map_err(|e| format!("设备参数解析失败: {e}"))
 }
 
 /// 从 JSON 字符串解析媒体载荷参数。
-pub(crate) fn parse_media(media_json: &str) -> Result<MediaPayload, String> {
+pub fn parse_media(media_json: &str) -> Result<MediaPayload, String> {
     serde_json::from_str(media_json).map_err(|e| format!("媒体参数解析失败: {e}"))
 }

@@ -2,10 +2,10 @@
 
 use super::*;
 
-pub(crate) struct ExclusiveProgress {
-    pub(crate) samples_played: AtomicU64,
-    pub(crate) sample_rate: AtomicU32,
-    pub(crate) channels: AtomicU32,
+pub struct ExclusiveProgress {
+    pub samples_played: AtomicU64,
+    pub sample_rate: AtomicU32,
+    pub channels: AtomicU32,
     /// 源总时长（毫秒），供 Flutter 侧在 DSP 管线播放时更新进度条。
     duration_ms: AtomicU64,
     /// 跳过静音累计丢弃的交错样本数（与 SilenceSkipProducer 共享同一计数器）。
@@ -32,7 +32,7 @@ impl ExclusiveProgress {
 // 运行时命令
 // =========================================================================
 
-pub(crate) enum ExclusiveCommand {
+pub enum ExclusiveCommand {
     Seek {
         time_secs: f64,
         is_playing: bool,
@@ -68,7 +68,7 @@ pub(crate) enum ExclusiveCommand {
 // 独占播放控制器
 // =========================================================================
 
-pub(crate) struct AndroidExclusivePlayback {
+pub struct AndroidExclusivePlayback {
     tx: Sender<ExclusiveCommand>,
     join_handle: Option<thread::JoinHandle<()>>,
     progress: Arc<ExclusiveProgress>,
@@ -95,9 +95,9 @@ impl Drop for AndroidExclusivePlayback {
 // 全局实例
 // =========================================================================
 
-pub(crate) static INSTANCE: OnceLock<Mutex<Option<AndroidExclusivePlayback>>> = OnceLock::new();
+pub static INSTANCE: OnceLock<Mutex<Option<AndroidExclusivePlayback>>> = OnceLock::new();
 
-pub(crate) fn instance() -> &'static Mutex<Option<AndroidExclusivePlayback>> {
+pub fn instance() -> &'static Mutex<Option<AndroidExclusivePlayback>> {
     INSTANCE.get_or_init(|| Mutex::new(None))
 }
 
@@ -453,7 +453,7 @@ pub fn get_exclusive_device_info() -> String {
 ///
 /// 目前只处理本地文件与直链：在线源需要 Dart 侧先解析直链并预热流缓存，
 /// 未预热时这里不阻塞等待（等不到反而拖慢切歌），直接退回普通切歌。
-pub(crate) fn prepare_next_source(
+pub fn prepare_next_source(
     path: &str,
     stream_cache_url: Option<&str>,
     _stream_cache_headers: Option<&std::collections::HashMap<String, String>>,
@@ -479,7 +479,7 @@ pub(crate) fn prepare_next_source(
     })
 }
 
-pub(crate) fn run_exclusive_playback(
+pub fn run_exclusive_playback(
     request: ExclusivePlayRequest,
     cmd_rx: Receiver<ExclusiveCommand>,
     init_tx: SyncSender<Result<(String, u32, u16), String>>,

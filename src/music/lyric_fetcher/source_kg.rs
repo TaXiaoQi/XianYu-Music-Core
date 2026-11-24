@@ -194,7 +194,7 @@ fn kg_get_intv(interval: &str) -> u32 {
     intv
 }
 
-pub(crate) async fn fetch_kg_lyric(
+pub async fn fetch_kg_lyric(
     song_info: &LyricSongInfo,
 ) -> Result<Option<LyricResult>, String> {
     let name = &song_info.name;

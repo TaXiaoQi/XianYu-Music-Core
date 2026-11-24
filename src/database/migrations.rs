@@ -378,7 +378,7 @@ fn migrate_playback_session(conn: &Connection) -> Result<(), String> {
     Ok(())
 }
 
-pub(crate) fn run_migrations(conn: &Connection) -> Result<(), String> {
+pub fn run_migrations(conn: &Connection) -> Result<(), String> {
     migrate_library_folders(conn)?;
     merge_legacy_sidebar_roots(conn);
     migrate_song_columns(conn)?;

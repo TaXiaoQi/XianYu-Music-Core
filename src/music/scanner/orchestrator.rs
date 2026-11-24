@@ -18,11 +18,11 @@ use std::sync::{Arc, Mutex};
 use walkdir::WalkDir;
 
 /// 歌手头像保存器（移动端由调用方注入，桌面端为 covers 模块实现）。
-pub(crate) trait AvatarSaver: Send + Sync {
+pub trait AvatarSaver: Send + Sync {
     fn save(&self, bytes: &[u8]) -> Option<String>;
 }
 
-pub(crate) fn scan_single_directory_internal(
+pub fn scan_single_directory_internal(
     folder_path: String,
     db_conn: Arc<Mutex<rusqlite::Connection>>,
     sink: Option<Arc<dyn ScanProgressSink>>,
@@ -164,7 +164,7 @@ pub(crate) fn scan_single_directory_internal(
 }
 
 /// 批量解析一组音频文件的元数据（不写库）。对齐桌面端 `parse_audio_files`。
-pub(crate) fn parse_audio_files(
+pub fn parse_audio_files(
     paths: Vec<String>,
     minimum_duration_seconds: Option<u32>,
     minimum_file_size_bytes: Option<u64>,
@@ -176,7 +176,7 @@ pub(crate) fn parse_audio_files(
 }
 
 /// 递归扫描文件夹内全部受支持音频并解析元数据（不写库）。对齐桌面端 `parse_music_folder`。
-pub(crate) fn parse_music_folder(
+pub fn parse_music_folder(
     folder_path: String,
     minimum_duration_seconds: Option<u32>,
     minimum_file_size_bytes: Option<u64>,
@@ -205,7 +205,7 @@ pub(crate) fn parse_music_folder(
     Ok(parse_audio_files_internal(paths, options))
 }
 
-pub(crate) fn find_first_song_recursive(
+pub fn find_first_song_recursive(
     path: &Path,
     conn: &rusqlite::Connection,
 ) -> Option<String> {
@@ -274,7 +274,7 @@ fn read_subdirectories(folder_path: &Path) -> Option<Vec<PathBuf>> {
     Some(subdirs)
 }
 
-pub(crate) fn scan_folder_recursive(
+pub fn scan_folder_recursive(
     folder_path: PathBuf,
     current_depth: u32,
     max_depth: u32,

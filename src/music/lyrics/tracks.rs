@@ -1,6 +1,6 @@
 use super::*;
 
-pub(crate) fn track_source_format(lines: &[LyricTrackLine]) -> LyricTrackSourceFormat {
+pub fn track_source_format(lines: &[LyricTrackLine]) -> LyricTrackSourceFormat {
     let mut formats = lines
         .iter()
         .map(|line| map_track_source_format(&line.source_format))
@@ -14,7 +14,7 @@ pub(crate) fn track_source_format(lines: &[LyricTrackLine]) -> LyricTrackSourceF
     }
 }
 
-pub(crate) fn track_timing_mode(lines: &[LyricTrackLine]) -> LyricTimingMode {
+pub fn track_timing_mode(lines: &[LyricTrackLine]) -> LyricTimingMode {
     if lines.iter().any(|line| {
         line.words
             .as_ref()
@@ -29,7 +29,7 @@ pub(crate) fn track_timing_mode(lines: &[LyricTrackLine]) -> LyricTimingMode {
     LyricTimingMode::None
 }
 
-pub(crate) fn track_dominant_script(lines: &[LyricTrackLine]) -> DominantScript {
+pub fn track_dominant_script(lines: &[LyricTrackLine]) -> DominantScript {
     let latin_count = lines
         .iter()
         .map(|line| line.script_profile.latin_count)
@@ -49,7 +49,7 @@ pub(crate) fn track_dominant_script(lines: &[LyricTrackLine]) -> DominantScript 
     resolve_dominant_script(latin_count, han_count, kana_count, hangul_count)
 }
 
-pub(crate) fn build_candidate_lines(lines: &[ParsedLine]) -> Vec<LyricTrackLine> {
+pub fn build_candidate_lines(lines: &[ParsedLine]) -> Vec<LyricTrackLine> {
     let mut candidates = Vec::new();
 
     for (index, line) in lines.iter().enumerate() {
@@ -170,7 +170,7 @@ pub(crate) fn build_candidate_lines(lines: &[ParsedLine]) -> Vec<LyricTrackLine>
     candidates
 }
 
-pub(crate) fn get_effective_tolerance(
+pub fn get_effective_tolerance(
     current_start_ms: u32,
     prev_start_ms: Option<u32>,
     next_start_ms: Option<u32>,
@@ -185,7 +185,7 @@ pub(crate) fn get_effective_tolerance(
     MAX_GROUP_TOLERANCE_MS.min(prev_gap / 4).min(next_gap / 4)
 }
 
-pub(crate) fn find_context_start(
+pub fn find_context_start(
     lines: &[LyricTrackLine],
     origin_index: usize,
     direction: isize,
@@ -204,7 +204,7 @@ pub(crate) fn find_context_start(
     None
 }
 
-pub(crate) fn should_keep_separate_for_script_similarity(
+pub fn should_keep_separate_for_script_similarity(
     group: &[LyricTrackLine],
     candidate: &LyricTrackLine,
 ) -> bool {
@@ -238,7 +238,7 @@ pub(crate) fn should_keep_separate_for_script_similarity(
         .any(|line| line.script_profile.dominant_script == candidate.script_profile.dominant_script)
 }
 
-pub(crate) fn group_candidate_lines(lines: &[LyricTrackLine]) -> Vec<Vec<LyricTrackLine>> {
+pub fn group_candidate_lines(lines: &[LyricTrackLine]) -> Vec<Vec<LyricTrackLine>> {
     if lines.is_empty() {
         return Vec::new();
     }
@@ -286,7 +286,7 @@ pub(crate) fn group_candidate_lines(lines: &[LyricTrackLine]) -> Vec<Vec<LyricTr
     groups
 }
 
-pub(crate) fn track_role_hint(track: &LyricTrack) -> Option<LyricTrackRole> {
+pub fn track_role_hint(track: &LyricTrack) -> Option<LyricTrackRole> {
     let translation_count = track
         .lines
         .iter()
@@ -309,7 +309,7 @@ pub(crate) fn track_role_hint(track: &LyricTrack) -> Option<LyricTrackRole> {
     }
 }
 
-pub(crate) fn score_script_compatibility(track: &LyricTrack, candidate: &LyricTrackLine) -> f64 {
+pub fn score_script_compatibility(track: &LyricTrack, candidate: &LyricTrackLine) -> f64 {
     if track.dominant_script == candidate.script_profile.dominant_script {
         return 4.0;
     }
@@ -342,7 +342,7 @@ pub(crate) fn score_script_compatibility(track: &LyricTrack, candidate: &LyricTr
     -2.2
 }
 
-pub(crate) fn score_track_match(
+pub fn score_track_match(
     track: &LyricTrack,
     candidate: &LyricTrackLine,
     cluster_index: usize,
@@ -412,7 +412,7 @@ pub(crate) fn score_track_match(
     score
 }
 
-pub(crate) fn build_tracks(groups: Vec<Vec<LyricTrackLine>>) -> Vec<LyricTrack> {
+pub fn build_tracks(groups: Vec<Vec<LyricTrackLine>>) -> Vec<LyricTrack> {
     let mut tracks: Vec<LyricTrack> = Vec::new();
 
     for (cluster_index, group) in groups.into_iter().enumerate() {
@@ -475,7 +475,7 @@ pub(crate) fn build_tracks(groups: Vec<Vec<LyricTrackLine>>) -> Vec<LyricTrack> 
     tracks
 }
 
-pub(crate) fn score_pair_alignment(drift_ms: i64) -> f64 {
+pub fn score_pair_alignment(drift_ms: i64) -> f64 {
     let abs_drift = drift_ms.unsigned_abs() as u32;
     if abs_drift <= ALIGNMENT_HIGH_WINDOW_MS {
         1.0
@@ -488,7 +488,7 @@ pub(crate) fn score_pair_alignment(drift_ms: i64) -> f64 {
     }
 }
 
-pub(crate) fn compute_track_alignment(
+pub fn compute_track_alignment(
     main_track: &LyricTrack,
     aux_track: &LyricTrack,
 ) -> TrackAlignment {
@@ -551,7 +551,7 @@ pub(crate) fn compute_track_alignment(
     }
 }
 
-pub(crate) fn tokenize_latin_words(text: &str) -> Vec<String> {
+pub fn tokenize_latin_words(text: &str) -> Vec<String> {
     let mut tokens = Vec::new();
     let mut current = String::new();
 
@@ -571,7 +571,7 @@ pub(crate) fn tokenize_latin_words(text: &str) -> Vec<String> {
     tokens
 }
 
-pub(crate) fn looks_like_english_phrase(text: &str) -> bool {
+pub fn looks_like_english_phrase(text: &str) -> bool {
     let tokens = tokenize_latin_words(text);
     if tokens.len() < 4 {
         return false;
@@ -591,7 +591,7 @@ pub(crate) fn looks_like_english_phrase(text: &str) -> bool {
     average_token_length >= 3.0 && keyword_hits >= 2 && score_romanized_latin_text(text) < 0.42
 }
 
-pub(crate) fn looks_like_non_romaji_english_latin_text(text: &str) -> bool {
+pub fn looks_like_non_romaji_english_latin_text(text: &str) -> bool {
     let profile = get_line_script_profile(text);
     if profile.dominant_script != DominantScript::Latin {
         return false;
@@ -656,7 +656,7 @@ pub(crate) fn looks_like_non_romaji_english_latin_text(text: &str) -> bool {
     has_english_word_ending && (hint_matches >= 2 || englishness >= romanization + 0.12)
 }
 
-pub(crate) fn score_englishness(text: &str) -> f64 {
+pub fn score_englishness(text: &str) -> f64 {
     let tokens = tokenize_latin_words(text);
     if tokens.is_empty() {
         return 0.0;
@@ -683,7 +683,7 @@ pub(crate) fn score_englishness(text: &str) -> f64 {
     clamp01((hint_matches / tokens.len() as f64) * 0.85 + contraction_bonus)
 }
 
-pub(crate) fn score_romanized_latin_text(text: &str) -> f64 {
+pub fn score_romanized_latin_text(text: &str) -> f64 {
     let profile = get_line_script_profile(text);
     if profile.dominant_script != DominantScript::Latin {
         return 0.0;
@@ -753,7 +753,7 @@ pub(crate) fn score_romanized_latin_text(text: &str) -> f64 {
     )
 }
 
-pub(crate) fn score_track_englishness(track: &LyricTrack) -> f64 {
+pub fn score_track_englishness(track: &LyricTrack) -> f64 {
     average(
         &track
             .lines
@@ -763,7 +763,7 @@ pub(crate) fn score_track_englishness(track: &LyricTrack) -> f64 {
     )
 }
 
-pub(crate) fn score_track_romanization(track: &LyricTrack) -> f64 {
+pub fn score_track_romanization(track: &LyricTrack) -> f64 {
     average(
         &track
             .lines
@@ -773,7 +773,7 @@ pub(crate) fn score_track_romanization(track: &LyricTrack) -> f64 {
     )
 }
 
-pub(crate) fn score_track_roles(
+pub fn score_track_roles(
     main_track: &LyricTrack,
     candidate_track: &LyricTrack,
     alignment: &TrackAlignment,
@@ -841,7 +841,7 @@ pub(crate) fn score_track_roles(
     }
 }
 
-pub(crate) fn shared_source_origin_match_ratio(
+pub fn shared_source_origin_match_ratio(
     main_track: &LyricTrack,
     aux_track: &LyricTrack,
     alignment: &TrackAlignment,
@@ -868,7 +868,7 @@ pub(crate) fn shared_source_origin_match_ratio(
     matched_pairs as f64 / alignment.pairs.len() as f64
 }
 
-pub(crate) fn score_main_track(
+pub fn score_main_track(
     candidate_track: &LyricTrack,
     tracks: &[LyricTrack],
     alignments: &[Vec<TrackAlignment>],
@@ -1015,7 +1015,7 @@ pub(crate) fn score_main_track(
     score
 }
 
-pub(crate) fn track_confidence(role: &LyricTrackRole, scores: &TrackRoleScores) -> f64 {
+pub fn track_confidence(role: &LyricTrackRole, scores: &TrackRoleScores) -> f64 {
     match role {
         LyricTrackRole::Main => clamp01(scores.main / 6.0),
         LyricTrackRole::Translation => scores.translation,
@@ -1026,20 +1026,20 @@ pub(crate) fn track_confidence(role: &LyricTrackRole, scores: &TrackRoleScores) 
     }
 }
 
-pub(crate) fn is_han_translation_track(track: &LyricTrack) -> bool {
+pub fn is_han_translation_track(track: &LyricTrack) -> bool {
     track.dominant_script == DominantScript::Han && !track_has_japanese_like_lines(track)
 }
 
-pub(crate) fn has_han_translation_content(profile: &LineScriptProfile) -> bool {
+pub fn has_han_translation_content(profile: &LineScriptProfile) -> bool {
     profile.han_count > 0 && profile.kana_count == 0 && profile.hangul_count == 0
 }
 
-pub(crate) fn looks_like_romanization_track(track: &LyricTrack) -> bool {
+pub fn looks_like_romanization_track(track: &LyricTrack) -> bool {
     track.dominant_script == DominantScript::Latin
         && score_track_romanization(track) >= (score_track_englishness(track) + 0.05).max(0.34)
 }
 
-pub(crate) fn detect_japanese_with_romaji_translation_template(
+pub fn detect_japanese_with_romaji_translation_template(
     tracks: &[LyricTrack],
     alignments: &[Vec<TrackAlignment>],
 ) -> Option<LayoutTemplateResolution> {
@@ -1115,7 +1115,7 @@ pub(crate) fn detect_japanese_with_romaji_translation_template(
     best_resolution
 }
 
-pub(crate) fn detect_main_with_translation_template(
+pub fn detect_main_with_translation_template(
     tracks: &[LyricTrack],
     alignments: &[Vec<TrackAlignment>],
 ) -> Option<LayoutTemplateResolution> {
@@ -1180,7 +1180,7 @@ pub(crate) fn detect_main_with_translation_template(
     best_resolution
 }
 
-pub(crate) fn detect_layout_template(
+pub fn detect_layout_template(
     tracks: &[LyricTrack],
     alignments: &[Vec<TrackAlignment>],
 ) -> Option<LayoutTemplateResolution> {

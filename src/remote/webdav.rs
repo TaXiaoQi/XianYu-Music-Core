@@ -10,7 +10,7 @@ use std::sync::OnceLock;
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
 
-pub(crate) fn shared_client() -> &'static Client {
+pub fn shared_client() -> &'static Client {
     // shared_client
     static CLIENT: OnceLock<Client> = OnceLock::new();
     CLIENT.get_or_init(|| {
@@ -190,7 +190,7 @@ fn path_for_request(source: &RemoteSourceCredentials, path: &str) -> String {
     }
 }
 
-pub(crate) fn build_url(source: &RemoteSourceCredentials, path: &str) -> String {
+pub fn build_url(source: &RemoteSourceCredentials, path: &str) -> String {
     let base = source.base_url.trim_end_matches('/');
     let encoded = encode_path(&path_for_request(source, path));
     if encoded.is_empty() {
@@ -364,7 +364,7 @@ fn parse_propfind_response(
     Ok(entries)
 }
 
-pub(crate) async fn list_directory(
+pub async fn list_directory(
     client: &Client,
     source: &RemoteSourceCredentials,
     path: &str,
@@ -400,7 +400,7 @@ pub(crate) async fn list_directory(
         .collect())
 }
 
-pub(crate) async fn collect_audio_files(
+pub async fn collect_audio_files(
     source: &RemoteSourceCredentials,
 ) -> Result<Vec<RemoteFileEntry>, String> {
     let client = shared_client();
@@ -420,13 +420,13 @@ pub(crate) async fn collect_audio_files(
     Ok(files)
 }
 
-pub(crate) async fn test_connection(source: &RemoteSourceCredentials) -> Result<(), String> {
+pub async fn test_connection(source: &RemoteSourceCredentials) -> Result<(), String> {
     let client = shared_client();
     list_directory(&client, source, "/").await?;
     Ok(())
 }
 
-pub(crate) async fn read_text_file(
+pub async fn read_text_file(
     source: &RemoteSourceCredentials,
     path: &str,
 ) -> Result<Option<String>, String> {
@@ -452,7 +452,7 @@ pub(crate) async fn read_text_file(
 
 /// 下载小文件到内存（目录封面图专用）：非 2xx / 超 max_bytes 均返回 None，
 /// 调用方按候选序逐个探测，失败静默跳过。封面图一般几十 KB～1MB。
-pub(crate) async fn download_small_file(
+pub async fn download_small_file(
     source: &RemoteSourceCredentials,
     remote_path: &str,
     max_bytes: usize,
@@ -475,7 +475,7 @@ pub(crate) async fn download_small_file(
     Some(bytes.to_vec())
 }
 
-pub(crate) async fn download_file_to_path(
+pub async fn download_file_to_path(
     source: &RemoteSourceCredentials,
     remote_path: &str,
     target_path: &Path,

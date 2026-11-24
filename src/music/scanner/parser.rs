@@ -106,13 +106,13 @@ pub(super) fn song_identity_missing(song: &Song) -> bool {
 /// - `path`：实际用于读取的路径（桌面为真实路径；Android SAF 下为 `/proc/self/fd/N`）
 /// - `semantic_name`：用于派生 name/title 的人类可读文件名（fd 路径本身无名）
 /// - `path_str`：作为库里 Song.path 主键的稳定字符串
-pub(crate) fn parse_song_from_file(path: &Path, path_str: &str, format: &str) -> Option<Song> {
+pub fn parse_song_from_file(path: &Path, path_str: &str, format: &str) -> Option<Song> {
     let semantic = path.to_string_lossy().into_owned();
     parse_song_inner(path, &semantic, path_str, format)
 }
 
 /// Android SAF 场景：从已被 Android 侧打开的 fd 解析（读取走 `/proc/self/fd/N`）。
-pub(crate) fn parse_song_from_fd(
+pub fn parse_song_from_fd(
     fd: i32,
     semantic_name: &str,
     path_str: &str,
@@ -124,7 +124,7 @@ pub(crate) fn parse_song_from_fd(
 }
 
 /// Android SAF 场景：从已物化到内部存储的真实路径解析（`path_str` 仍为稳定 content URI）。
-pub(crate) fn parse_song_from_file_with_name(
+pub fn parse_song_from_file_with_name(
     path: &Path,
     semantic_name: &str,
     path_str: &str,
@@ -135,7 +135,7 @@ pub(crate) fn parse_song_from_file_with_name(
 }
 
 /// 批量解析音频文件元数据（不写库）。对齐桌面端 `parse_audio_files_internal`。
-pub(crate) fn parse_audio_files_internal(paths: Vec<String>, options: ScanOptions) -> Vec<Song> {
+pub fn parse_audio_files_internal(paths: Vec<String>, options: ScanOptions) -> Vec<Song> {
     let mut songs = Vec::new();
     let mut seen_paths = HashSet::new();
 
@@ -567,7 +567,7 @@ fn resolve_album_artist_for_group(songs: &[Song]) -> (String, bool, bool) {
     )
 }
 
-pub(crate) fn build_cue_track_song(
+pub fn build_cue_track_song(
     cue_path: &str,
     flac_path: &str,
     track: &CueTrack,

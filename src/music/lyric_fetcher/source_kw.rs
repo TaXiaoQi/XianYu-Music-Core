@@ -102,7 +102,7 @@ fn decode_kw_lyric(body_base64: &str) -> Result<String, String> {
 
 // ==================== KW (Kuwo) Lyric Fetching ====================
 
-pub(crate) fn ms_format(time_ms: u64) -> String {
+pub fn ms_format(time_ms: u64) -> String {
     let ms = time_ms % 1000;
     let total_secs = time_ms / 1000;
     let m = total_secs / 60;
@@ -202,7 +202,7 @@ fn kw_parse_lrc(lrc: &str) -> Result<LyricResult, String> {
     })
 }
 
-pub(crate) async fn fetch_kw_lyric(
+pub async fn fetch_kw_lyric(
     song_info: &LyricSongInfo,
 ) -> Result<Option<LyricResult>, String> {
     let url = format!(

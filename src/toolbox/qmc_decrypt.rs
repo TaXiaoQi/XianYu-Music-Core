@@ -3,7 +3,7 @@
 use super::*;
 
 /// 从文件尾部提取 QMC ekey（QTag/V1 footer 格式）。
-pub(crate) fn try_extract_ekey_from_file(path: &Path) -> Option<String> {
+pub fn try_extract_ekey_from_file(path: &Path) -> Option<String> {
     let metadata = fs::metadata(path).ok()?;
     let file_size = metadata.len();
     if file_size < 8 {
@@ -22,14 +22,14 @@ pub(crate) fn try_extract_ekey_from_file(path: &Path) -> Option<String> {
 }
 
 /// 原地解密 QMC 加密文件：读取加密内容，逐块解密，覆盖写回。
-pub(crate) fn decrypt_qmc_file_inplace(path: &Path, ekey: &str) -> Result<u64, String> {
+pub fn decrypt_qmc_file_inplace(path: &Path, ekey: &str) -> Result<u64, String> {
     let crypto = crate::player::qmc2::QmcCrypto::from_ekey(ekey)
         .map_err(|e| format!("ekey 解析失败: {e}"))?;
     decrypt_with_crypto_inplace(path, &crypto)
 }
 
 /// 用指定 QMC 密码学实例原地解密（临时文件 + 原子替换）。
-pub(crate) fn decrypt_with_crypto_inplace(
+pub fn decrypt_with_crypto_inplace(
     path: &Path,
     crypto: &crate::player::qmc2::QmcCrypto,
 ) -> Result<u64, String> {
@@ -77,7 +77,7 @@ pub(crate) fn decrypt_with_crypto_inplace(
 }
 
 /// 读取文件头部（最多 16 字节）。
-pub(crate) fn read_file_header(path: &Path) -> Result<Vec<u8>, String> {
+pub fn read_file_header(path: &Path) -> Result<Vec<u8>, String> {
     use std::io::Read;
     let mut file = fs::File::open(path).map_err(|e| format!("打开文件失败: {e}"))?;
     let mut header = vec![0u8; 16];
@@ -96,7 +96,7 @@ pub(crate) fn read_file_header(path: &Path) -> Result<Vec<u8>, String> {
 }
 
 /// 判断是否 QMC1 老格式扩展名（固定密钥加密，无需 ekey）。
-pub(crate) fn is_qmc1_extension(path: &Path) -> bool {
+pub fn is_qmc1_extension(path: &Path) -> bool {
     let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
         return false;
     };
@@ -108,7 +108,7 @@ pub(crate) fn is_qmc1_extension(path: &Path) -> bool {
 }
 
 /// 解密后按真实音频格式修正文件扩展名（如 .qmcflac → .flac），返回新路径。
-pub(crate) fn rename_to_audio_extension(path: &Path) -> Result<Option<PathBuf>, String> {
+pub fn rename_to_audio_extension(path: &Path) -> Result<Option<PathBuf>, String> {
     let header = read_file_header(path)?;
     let Some(real_ext) = crate::player::qmc2::detect_audio_extension(&header) else {
         return Ok(None);

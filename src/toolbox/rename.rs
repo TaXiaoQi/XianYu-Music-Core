@@ -2,8 +2,8 @@
 
 use super::*;
 
-pub(crate) static TRACK_PREFIX_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static SOURCE_PREFIX_RE: OnceLock<Regex> = OnceLock::new();
+pub static TRACK_PREFIX_RE: OnceLock<Regex> = OnceLock::new();
+pub static SOURCE_PREFIX_RE: OnceLock<Regex> = OnceLock::new();
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct RenameConfig {
@@ -31,7 +31,7 @@ pub struct RenameOperation {
     pub new_name: String,
 }
 
-pub(crate) fn sanitize_filename(name: &str) -> String {
+pub fn sanitize_filename(name: &str) -> String {
     // sanitize_filename
     let invalid_chars = ['<', '>', ':', '"', '/', '\\', '|', '?', '*'];
     let mut sanitized = String::new();
@@ -45,7 +45,7 @@ pub(crate) fn sanitize_filename(name: &str) -> String {
     sanitized.trim().to_string()
 }
 
-pub(crate) fn process_file(path: &Path, config: &RenameConfig) -> RenamePreview {
+pub fn process_file(path: &Path, config: &RenameConfig) -> RenamePreview {
     // process_file
     let original_name = path
         .file_name()

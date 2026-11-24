@@ -1,18 +1,18 @@
-pub(crate) use id3::TagLike;
-pub(crate) use lofty::config::ParseOptions;
-pub(crate) use lofty::file::{FileType, TaggedFile, TaggedFileExt};
-pub(crate) use lofty::picture::{MimeType, Picture, PictureType};
-pub(crate) use lofty::probe::Probe;
-pub(crate) use lofty::properties::FileProperties;
-pub(crate) use lofty::tag::{Accessor, ItemKey, ItemValue, Tag, TagItem, TagType};
-pub(crate) use std::fs::File;
-pub(crate) use std::io::{BufReader, Cursor, Read, Seek, SeekFrom};
-pub(crate) use std::path::Path;
+pub use id3::TagLike;
+pub use lofty::config::ParseOptions;
+pub use lofty::file::{FileType, TaggedFile, TaggedFileExt};
+pub use lofty::picture::{MimeType, Picture, PictureType};
+pub use lofty::probe::Probe;
+pub use lofty::properties::FileProperties;
+pub use lofty::tag::{Accessor, ItemKey, ItemValue, Tag, TagItem, TagType};
+pub use std::fs::File;
+pub use std::io::{BufReader, Cursor, Read, Seek, SeekFrom};
+pub use std::path::Path;
 
 mod salvage;
 mod transactional;
 mod write;
-pub(crate) use transactional::edit_tags;
+pub use transactional::edit_tags;
 
 use salvage::*;
 pub use write::*;
@@ -362,7 +362,7 @@ pub fn contains_lrc_timestamp(text: &str) -> bool {
     false
 }
 
-pub(crate) fn ordered_tags<'a, T>(tagged_file: &'a T) -> Vec<&'a Tag>
+pub fn ordered_tags<'a, T>(tagged_file: &'a T) -> Vec<&'a Tag>
 where
     T: TaggedFileExt + ?Sized,
 {
@@ -379,7 +379,7 @@ where
     tags
 }
 
-pub(crate) fn push_unique_tag<'a>(tags: &mut Vec<&'a Tag>, candidate: Option<&'a Tag>) {
+pub fn push_unique_tag<'a>(tags: &mut Vec<&'a Tag>, candidate: Option<&'a Tag>) {
     let Some(candidate) = candidate else {
         return;
     };
@@ -392,14 +392,14 @@ pub(crate) fn push_unique_tag<'a>(tags: &mut Vec<&'a Tag>, candidate: Option<&'a
     }
 }
 
-pub(crate) fn read_title(tag: &Tag) -> Option<String> {
+pub fn read_title(tag: &Tag) -> Option<String> {
     tag.title()
         .as_deref()
         .and_then(clean_text)
         .or_else(|| read_tag_text(tag, &[ItemKey::TrackTitle], &["TITLE", "INAM"]))
 }
 
-pub(crate) fn read_artist(tag: &Tag) -> Option<String> {
+pub fn read_artist(tag: &Tag) -> Option<String> {
     tag.artist().as_deref().and_then(clean_text).or_else(|| {
         read_tag_text(
             tag,
@@ -414,7 +414,7 @@ pub(crate) fn read_artist(tag: &Tag) -> Option<String> {
     })
 }
 
-pub(crate) fn read_album(tag: &Tag) -> Option<String> {
+pub fn read_album(tag: &Tag) -> Option<String> {
     tag.album().as_deref().and_then(clean_text).or_else(|| {
         read_tag_text(
             tag,
@@ -424,7 +424,7 @@ pub(crate) fn read_album(tag: &Tag) -> Option<String> {
     })
 }
 
-pub(crate) fn read_album_artist(tag: &Tag) -> Option<String> {
+pub fn read_album_artist(tag: &Tag) -> Option<String> {
     read_tag_text(
         tag,
         &[
@@ -436,7 +436,7 @@ pub(crate) fn read_album_artist(tag: &Tag) -> Option<String> {
     )
 }
 
-pub(crate) fn read_tag_text(tag: &Tag, keys: &[ItemKey], unknown_keys: &[&str]) -> Option<String> {
+pub fn read_tag_text(tag: &Tag, keys: &[ItemKey], unknown_keys: &[&str]) -> Option<String> {
     for key in keys {
         if let Some(text) = tag.get_string(key).and_then(clean_text) {
             return Some(text);
@@ -455,14 +455,14 @@ pub(crate) fn read_tag_text(tag: &Tag, keys: &[ItemKey], unknown_keys: &[&str]) 
     })
 }
 
-pub(crate) fn item_text(item: &TagItem) -> Option<String> {
+pub fn item_text(item: &TagItem) -> Option<String> {
     item.value()
         .text()
         .or_else(|| item.value().locator())
         .and_then(clean_text)
 }
 
-pub(crate) fn clean_text(value: &str) -> Option<String> {
+pub fn clean_text(value: &str) -> Option<String> {
     let trimmed = value.trim_matches('\0').trim();
     (!trimmed.is_empty()).then(|| repair_latin1_mojibake(trimmed).into_owned())
 }
@@ -477,7 +477,7 @@ pub(crate) fn clean_text(value: &str) -> Option<String> {
 ///    吐 U+FFFD）且结果含 CJK 字符才采用，避免「Café」「Beyoncé」这类
 ///    真 Latin-1 文本被误转（法语/西语老标签理论上存在被误转的边角，
 ///    中文库里 GBK 乱码的量级远大于此，取舍与 decode_riff_info_text 一致）。
-pub(crate) fn repair_latin1_mojibake(value: &str) -> std::borrow::Cow<'_, str> {
+pub fn repair_latin1_mojibake(value: &str) -> std::borrow::Cow<'_, str> {
     if value.is_ascii() {
         return std::borrow::Cow::Borrowed(value);
     }
@@ -514,19 +514,19 @@ fn is_cjk_char(c: char) -> bool {
     )
 }
 
-pub(crate) fn looks_like_lyrics_key(raw_key: &str) -> bool {
+pub fn looks_like_lyrics_key(raw_key: &str) -> bool {
     matches!(
         raw_key.to_ascii_uppercase().as_str(),
         "LYRICS" | "LYRIC" | "LRC" | "KLYRIC" | "UNSYNCEDLYRICS" | "SYNCEDLYRICS"
     )
 }
 
-pub(crate) fn looks_like_lyrics_description(description: &str) -> bool {
+pub fn looks_like_lyrics_description(description: &str) -> bool {
     let normalized = description.trim().to_ascii_uppercase();
     !normalized.is_empty() && (normalized.contains("LYRIC") || normalized.contains("LRC"))
 }
 
-pub(crate) fn seems_like_lyrics_text(text: &str) -> bool {
+pub fn seems_like_lyrics_text(text: &str) -> bool {
     contains_lrc_timestamp(text) || text.lines().filter(|line| !line.trim().is_empty()).count() >= 2
 }
 

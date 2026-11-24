@@ -5,10 +5,10 @@
 // Dart 侧经 lxToplistBoards/lxToplistBoardSongs 桥接；平台来源/开关由服务端
 // 下发的签名配置调整（见 fallback_modules/registry 与 plugin_host_fallback）。
 
-pub(crate) mod kg;
+pub mod kg;
 mod kw;
 mod tx;
-pub(crate) mod wy;
+pub mod wy;
 
 use std::collections::HashMap;
 use std::time::Duration;
@@ -105,7 +105,7 @@ pub async fn lx_toplist_board_songs(
 /// 由播放时音质回退链实测过滤，避免可选音质只剩 128k 一档。
 /// 仅用于 wy/kw（id 型解析、接口无体积字段）；kg/tx 各档数据独立，
 /// 见 kg::kg_declared_types 与 tx::tx_declared_types。
-pub(crate) fn declared_types(
+pub fn declared_types(
     source: &str,
     hash: Option<String>,
 ) -> (Vec<LxTypeTuple>, HashMap<String, LxTypeEntry>) {
@@ -135,7 +135,7 @@ pub(crate) fn declared_types(
 }
 
 /// Value → 平台原始 ID 字符串（数字不带引号；String 的 to_string 会带引号，需区分）
-pub(crate) fn value_to_id(v: &serde_json::Value) -> String {
+pub fn value_to_id(v: &serde_json::Value) -> String {
     match v {
         serde_json::Value::String(s) => s.clone(),
         other => other.to_string(),

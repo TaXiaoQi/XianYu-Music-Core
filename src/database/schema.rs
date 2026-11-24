@@ -1,6 +1,6 @@
 use rusqlite::Connection;
 
-pub(crate) fn configure_connection(conn: &Connection) -> Result<(), String> {
+pub fn configure_connection(conn: &Connection) -> Result<(), String> {
     conn.pragma_update(None, "foreign_keys", "ON")
         .map_err(|e| e.to_string())?;
     // 多连接并发写（统计/会话/下载历史）时等待写锁而非立即报 busy，
@@ -16,7 +16,7 @@ pub(crate) fn configure_connection(conn: &Connection) -> Result<(), String> {
     Ok(())
 }
 
-pub(crate) fn ensure_base_schema(conn: &Connection) -> Result<(), String> {
+pub fn ensure_base_schema(conn: &Connection) -> Result<(), String> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS songs (
             id INTEGER PRIMARY KEY, 

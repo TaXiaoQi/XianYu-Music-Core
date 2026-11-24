@@ -15,7 +15,7 @@ pub enum TimeRange {
 }
 
 impl TimeRange {
-    pub(crate) fn to_timestamp_from(&self) -> Option<i64> {
+    pub fn to_timestamp_from(&self) -> Option<i64> {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
@@ -84,36 +84,36 @@ pub enum SongPathSortMode {
 }
 
 #[derive(Debug)]
-pub(crate) struct SongCatalogRow {
-    pub(crate) path: String,
-    pub(crate) artist: String,
-    pub(crate) artist_names: Vec<String>,
-    pub(crate) effective_artist_names: Vec<String>,
-    pub(crate) album: String,
-    pub(crate) album_artist: String,
-    pub(crate) album_key: String,
+pub struct SongCatalogRow {
+    pub path: String,
+    pub artist: String,
+    pub artist_names: Vec<String>,
+    pub effective_artist_names: Vec<String>,
+    pub album: String,
+    pub album_artist: String,
+    pub album_key: String,
 }
 
 #[derive(Debug)]
-pub(crate) struct SongViewRow {
-    pub(crate) path: String,
-    pub(crate) title: String,
-    pub(crate) artist: String,
-    pub(crate) artist_names: Vec<String>,
-    pub(crate) effective_artist_names: Vec<String>,
-    pub(crate) album: String,
-    pub(crate) album_artist: String,
-    pub(crate) album_key: String,
-    pub(crate) added_at: Option<i64>,
-    pub(crate) file_modified_at: Option<i64>,
+pub struct SongViewRow {
+    pub path: String,
+    pub title: String,
+    pub artist: String,
+    pub artist_names: Vec<String>,
+    pub effective_artist_names: Vec<String>,
+    pub album: String,
+    pub album_artist: String,
+    pub album_key: String,
+    pub added_at: Option<i64>,
+    pub file_modified_at: Option<i64>,
 }
 
-pub(crate) fn deserialize_string_list(raw: Option<String>) -> Vec<String> {
+pub fn deserialize_string_list(raw: Option<String>) -> Vec<String> {
     raw.and_then(|value| serde_json::from_str::<Vec<String>>(&value).ok())
         .unwrap_or_default()
 }
 
-pub(crate) fn preferred_artist_names(row: &SongCatalogRow) -> Vec<String> {
+pub fn preferred_artist_names(row: &SongCatalogRow) -> Vec<String> {
     if !row.effective_artist_names.is_empty() {
         return row.effective_artist_names.clone();
     }
@@ -125,7 +125,7 @@ pub(crate) fn preferred_artist_names(row: &SongCatalogRow) -> Vec<String> {
     vec![row.artist.clone()]
 }
 
-pub(crate) fn preferred_view_artist_names(row: &SongViewRow) -> Vec<String> {
+pub fn preferred_view_artist_names(row: &SongViewRow) -> Vec<String> {
     if !row.effective_artist_names.is_empty() {
         return row.effective_artist_names.clone();
     }
@@ -137,7 +137,7 @@ pub(crate) fn preferred_view_artist_names(row: &SongViewRow) -> Vec<String> {
     vec![row.artist.clone()]
 }
 
-pub(crate) fn resolve_album_key(row: &SongCatalogRow) -> String {
+pub fn resolve_album_key(row: &SongCatalogRow) -> String {
     if !row.album_key.trim().is_empty() {
         return row.album_key.clone();
     }
@@ -158,7 +158,7 @@ pub(crate) fn resolve_album_key(row: &SongCatalogRow) -> String {
     format!("{}::{}", album, artist,)
 }
 
-pub(crate) fn resolve_view_album_key(row: &SongViewRow) -> String {
+pub fn resolve_view_album_key(row: &SongViewRow) -> String {
     if !row.album_key.trim().is_empty() {
         return row.album_key.clone();
     }
@@ -179,14 +179,14 @@ pub(crate) fn resolve_view_album_key(row: &SongViewRow) -> String {
     format!("{album}::{artist}")
 }
 
-pub(crate) fn path_file_name(path: &str) -> String {
+pub fn path_file_name(path: &str) -> String {
     std::path::Path::new(path)
         .file_name()
         .map(|name| name.to_string_lossy().into_owned())
         .unwrap_or_else(|| path.to_string())
 }
 
-pub(crate) fn song_title_label(row: &SongViewRow) -> String {
+pub fn song_title_label(row: &SongViewRow) -> String {
     if row.title.trim().is_empty() {
         path_file_name(&row.path)
     } else {
@@ -194,7 +194,7 @@ pub(crate) fn song_title_label(row: &SongViewRow) -> String {
     }
 }
 
-pub(crate) fn song_matches_query(row: &SongViewRow, query: &str) -> bool {
+pub fn song_matches_query(row: &SongViewRow, query: &str) -> bool {
     let lowered_query = query.trim().to_lowercase();
     if lowered_query.is_empty() {
         return true;
@@ -212,13 +212,13 @@ pub(crate) fn song_matches_query(row: &SongViewRow, query: &str) -> bool {
             .any(|name| name.to_lowercase().contains(&lowered_query))
 }
 
-pub(crate) fn song_has_artist(row: &SongViewRow, artist_name: &str) -> bool {
+pub fn song_has_artist(row: &SongViewRow, artist_name: &str) -> bool {
     preferred_view_artist_names(row)
         .iter()
         .any(|name| name == artist_name)
 }
 
-pub(crate) fn sort_song_view_rows(rows: &mut [SongViewRow], sort_mode: &SongPathSortMode) {
+pub fn sort_song_view_rows(rows: &mut [SongViewRow], sort_mode: &SongPathSortMode) {
     rows.sort_by(|left, right| match sort_mode {
         SongPathSortMode::Title => song_title_label(left)
             .to_lowercase()
@@ -271,7 +271,7 @@ pub(crate) fn sort_song_view_rows(rows: &mut [SongViewRow], sort_mode: &SongPath
     });
 }
 
-pub(crate) fn load_song_catalog_row(
+pub fn load_song_catalog_row(
     conn: &rusqlite::Connection,
     normalized_path: &str,
 ) -> Result<Option<SongCatalogRow>, String> {
@@ -296,7 +296,7 @@ pub(crate) fn load_song_catalog_row(
     .map_err(|e| e.to_string())
 }
 
-pub(crate) fn load_song_view_row(
+pub fn load_song_view_row(
     conn: &rusqlite::Connection,
     normalized_path: &str,
 ) -> Result<Option<SongViewRow>, String> {
@@ -324,7 +324,7 @@ pub(crate) fn load_song_view_row(
     .map_err(|e| e.to_string())
 }
 
-pub(crate) fn lookup_song_id(conn: &rusqlite::Connection, normalized_path: &str) -> Option<i64> {
+pub fn lookup_song_id(conn: &rusqlite::Connection, normalized_path: &str) -> Option<i64> {
     conn.query_row(
         "SELECT id FROM songs WHERE path = ?1",
         [normalized_path],
@@ -333,7 +333,7 @@ pub(crate) fn lookup_song_id(conn: &rusqlite::Connection, normalized_path: &str)
     .ok()
 }
 
-pub(crate) fn build_library_match_index(
+pub fn build_library_match_index(
     conn: &rusqlite::Connection,
 ) -> Result<LibraryMatchIndex, String> {
     let mut stmt = conn
@@ -389,7 +389,7 @@ pub(crate) fn build_library_match_index(
     Ok(index)
 }
 
-pub(crate) fn select_unique_candidate(
+pub fn select_unique_candidate(
     map: &HashMap<String, Vec<LibraryMatchCandidate>>,
     key: &str,
 ) -> Option<LibraryMatchCandidate> {
@@ -402,7 +402,7 @@ pub(crate) fn select_unique_candidate(
     })
 }
 
-pub(crate) fn match_song_identity(
+pub fn match_song_identity(
     index: &LibraryMatchIndex,
     identity: &PortableSongIdentity,
 ) -> Option<LibraryMatchCandidate> {
@@ -413,7 +413,7 @@ pub(crate) fn match_song_identity(
         .or_else(|| select_unique_candidate(&index.weak_title, &weak_title_identity_key(identity)))
 }
 
-pub(crate) fn rebuild_statistics_aggregates(conn: &rusqlite::Connection) -> Result<(), String> {
+pub fn rebuild_statistics_aggregates(conn: &rusqlite::Connection) -> Result<(), String> {
     clear_aggregate_statistics(conn)?;
 
     {
@@ -478,7 +478,7 @@ pub(crate) fn rebuild_statistics_aggregates(conn: &rusqlite::Connection) -> Resu
     Ok(())
 }
 
-pub(crate) fn ensure_statistics_aggregates(conn: &rusqlite::Connection) -> Result<(), String> {
+pub fn ensure_statistics_aggregates(conn: &rusqlite::Connection) -> Result<(), String> {
     if get_statistics_meta(conn, "aggregates_backfilled")?
         .as_deref()
         .is_some_and(|value| value == "1")
@@ -489,7 +489,7 @@ pub(crate) fn ensure_statistics_aggregates(conn: &rusqlite::Connection) -> Resul
     rebuild_statistics_aggregates(conn)
 }
 
-pub(crate) fn load_portable_export(file_path: &str) -> Result<PortableStatisticsExport, String> {
+pub fn load_portable_export(file_path: &str) -> Result<PortableStatisticsExport, String> {
     let raw = fs::read_to_string(file_path).map_err(|e| e.to_string())?;
     let export: PortableStatisticsExport =
         serde_json::from_str(&raw).map_err(|_| "文件格式不正确或已损坏".to_string())?;
@@ -505,7 +505,7 @@ pub(crate) fn load_portable_export(file_path: &str) -> Result<PortableStatistics
     Ok(export)
 }
 
-pub(crate) fn query_global_stats(
+pub fn query_global_stats(
     conn: &rusqlite::Connection,
 ) -> Result<PortableGlobalStats, String> {
     let stats = conn
@@ -535,7 +535,7 @@ pub(crate) fn query_global_stats(
     Ok(stats)
 }
 
-pub(crate) fn query_song_stats(
+pub fn query_song_stats(
     conn: &rusqlite::Connection,
 ) -> Result<Vec<PortableSongStatsEntry>, String> {
     let mut stmt = conn
@@ -572,7 +572,7 @@ pub(crate) fn query_song_stats(
     Ok(rows.filter_map(|row| row.ok()).collect())
 }
 
-pub(crate) fn query_daily_stats(
+pub fn query_daily_stats(
     conn: &rusqlite::Connection,
 ) -> Result<Vec<PortableDailyStats>, String> {
     let mut stmt = conn
@@ -598,7 +598,7 @@ pub(crate) fn query_daily_stats(
     Ok(rows.filter_map(|row| row.ok()).collect())
 }
 
-pub(crate) fn query_hourly_stats(
+pub fn query_hourly_stats(
     conn: &rusqlite::Connection,
 ) -> Result<Vec<PortableHourlyStats>, String> {
     let mut buckets = vec![
@@ -638,7 +638,7 @@ pub(crate) fn query_hourly_stats(
     Ok(buckets)
 }
 
-pub(crate) fn query_recent_plays(
+pub fn query_recent_plays(
     conn: &rusqlite::Connection,
 ) -> Result<Vec<PortableRecentPlay>, String> {
     let mut stmt = conn

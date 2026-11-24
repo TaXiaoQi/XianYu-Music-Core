@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct RemoteSource {
+pub struct RemoteSource {
     // 实现
     pub id: String,
     pub name: String,
@@ -19,7 +19,7 @@ pub(crate) struct RemoteSource {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct RemoteSourceCredentials {
+pub struct RemoteSourceCredentials {
     // 实现
     #[serde(default)]
     pub id: String,
@@ -66,7 +66,7 @@ impl From<RemoteSourceCredentials> for RemoteSource {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct RemoteSourceInput {
+pub struct RemoteSourceInput {
     // 实现
     pub id: Option<String>,
     pub name: String,
@@ -79,7 +79,7 @@ pub(crate) struct RemoteSourceInput {
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct RemoteSyncResult {
+pub struct RemoteSyncResult {
     // 实现
     pub source_id: String,
     pub indexed_files: usize,
@@ -89,7 +89,7 @@ pub(crate) struct RemoteSyncResult {
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct RemoteFileEntry {
+pub struct RemoteFileEntry {
     // 实现
     pub remote_path: String,
     pub name: String,
@@ -101,7 +101,7 @@ pub(crate) struct RemoteFileEntry {
 
 impl RemoteFileEntry {
     // RemoteFileEntry
-    pub(crate) fn remote_uri(&self, source_id: &str) -> String {
+    pub fn remote_uri(&self, source_id: &str) -> String {
         format!(
             "remote://{}/{}",
             source_id,
@@ -112,12 +112,12 @@ impl RemoteFileEntry {
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct RemoteCacheUsage {
+pub struct RemoteCacheUsage {
     pub bytes: u64,
     pub files: usize,
     pub limit_bytes: u64,
 }
 /// 解析远程源 JSON 为凭据结构。
-pub(crate) fn parse_remote_source(json: &str) -> Result<RemoteSourceCredentials, String> {
+pub fn parse_remote_source(json: &str) -> Result<RemoteSourceCredentials, String> {
     serde_json::from_str(json).map_err(|e| format!("WebDAV 源 JSON 无效: {e}"))
 }

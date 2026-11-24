@@ -42,7 +42,7 @@ fn kg_declared_types(s: &serde_json::Value) -> (Vec<LxTypeTuple>, HashMap<String
     (types, lx_types)
 }
 
-pub(crate) async fn kg_boards() -> Result<Vec<LxToplistBoard>, String> {
+pub async fn kg_boards() -> Result<Vec<LxToplistBoard>, String> {
     let url = "http://mobilecdn.kugou.com/api/v3/rank/list?version=9108&plat=0&showtype=2&parentid=0&apiver=6";
     let data = tokio::time::timeout(Duration::from_secs(6), http_get_json(url, &[]))
         .await
@@ -78,7 +78,7 @@ pub(crate) async fn kg_boards() -> Result<Vec<LxToplistBoard>, String> {
         .collect())
 }
 
-pub(crate) async fn kg_board_songs(
+pub async fn kg_board_songs(
     board_id: &str,
     page: u32,
     limit: u32,

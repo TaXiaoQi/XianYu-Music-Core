@@ -4,7 +4,7 @@
 /// 优先检查常见字段名（url, data, musicUrl, audioUrl, src, link, file, path），
 /// 然后递归搜索任意层级的字符串值中以 http:// 或 https:// 开头且含音频扩展名的链接。
 /// 最后回退到任意 HTTP URL（不检查音频特征），并搜索 ekey 字段。
-pub(crate) fn extract_audio_info_from_json(body: &str) -> Option<(String, Option<String>)> {
+pub fn extract_audio_info_from_json(body: &str) -> Option<(String, Option<String>)> {
     // 处理双重编码 JSON：有些 API 返回 JSON 字符串包裹的 JSON
     let value: serde_json::Value = match serde_json::from_str(body) {
         Ok(v) => v,
@@ -80,7 +80,7 @@ pub(crate) fn extract_audio_info_from_json(body: &str) -> Option<(String, Option
     None
 }
 
-pub(crate) fn sanitize_extracted_audio_url(url: &str) -> String {
+pub fn sanitize_extracted_audio_url(url: &str) -> String {
     url.trim()
         .trim_matches(|c: char| {
             c.is_whitespace()
@@ -100,7 +100,7 @@ pub(crate) fn sanitize_extracted_audio_url(url: &str) -> String {
 ///   1. 解析 JSON（含双重编码处理）
 ///   2. 纯文本直链（去掉引号后以 http 开头）
 ///   3. 从任意文本中扫描 HTTP URL（处理 HTML/错误页等）
-pub(crate) fn extract_audio_info_from_text(body: &str) -> Option<(String, Option<String>)> {
+pub fn extract_audio_info_from_text(body: &str) -> Option<(String, Option<String>)> {
     // 策略 1：尝试 JSON 解析
     if let Some(info) = extract_audio_info_from_json(body) {
         return Some(info);
@@ -124,13 +124,13 @@ pub(crate) fn extract_audio_info_from_text(body: &str) -> Option<(String, Option
 }
 
 /// 在 JSON 中搜索 ekey 字段
-pub(crate) fn find_ekey_in_json(value: &serde_json::Value) -> Option<String> {
+pub fn find_ekey_in_json(value: &serde_json::Value) -> Option<String> {
     let ekey_keys = ["ekey", "eKey", "encryptKey", "encryptionKey"];
     find_string_by_keys(value, &ekey_keys)
 }
 
 /// 在 JSON 中按指定 key 列表搜索非空字符串值
-pub(crate) fn find_string_by_keys(value: &serde_json::Value, keys: &[&str]) -> Option<String> {
+pub fn find_string_by_keys(value: &serde_json::Value, keys: &[&str]) -> Option<String> {
     match value {
         serde_json::Value::Object(map) => {
             for &key in keys {
@@ -162,7 +162,7 @@ pub(crate) fn find_string_by_keys(value: &serde_json::Value, keys: &[&str]) -> O
 }
 
 /// 在 JSON 值中查找指定 key 对应的 URL 字符串
-pub(crate) fn find_url_by_key(value: &serde_json::Value, key: &str) -> Option<String> {
+pub fn find_url_by_key(value: &serde_json::Value, key: &str) -> Option<String> {
     match value {
         serde_json::Value::Object(map) => {
             if let Some(v) = map.get(key) {
@@ -198,7 +198,7 @@ pub(crate) fn find_url_by_key(value: &serde_json::Value, key: &str) -> Option<St
 }
 
 /// 递归搜索 JSON 中任意以 http 开头且看起来像音频 URL 的字符串
-pub(crate) fn find_any_audio_url(value: &serde_json::Value) -> Option<String> {
+pub fn find_any_audio_url(value: &serde_json::Value) -> Option<String> {
     match value {
         serde_json::Value::String(s) => {
             let clean = sanitize_extracted_audio_url(s);
@@ -233,7 +233,7 @@ pub(crate) fn find_any_audio_url(value: &serde_json::Value) -> Option<String> {
 /// 递归搜索 JSON 中任意以 http 开头的 URL 字符串（不检查音频特征）。
 /// 作为最后回退手段：某些 CDN 音频 URL 没有标准扩展名或已知域名。
 /// 跳过明显非音频的 URL（如 .html、.htm、图片扩展名、CSS/JS 等）。
-pub(crate) fn find_any_http_url(value: &serde_json::Value) -> Option<String> {
+pub fn find_any_http_url(value: &serde_json::Value) -> Option<String> {
     match value {
         serde_json::Value::String(s) => {
             let clean = sanitize_extracted_audio_url(s);
@@ -272,7 +272,7 @@ pub(crate) fn find_any_http_url(value: &serde_json::Value) -> Option<String> {
 }
 
 /// 判断 URL 明显不是音频链接（排除 HTML、图片、CSS、JS 等）
-pub(crate) fn is_obviously_non_audio_url(url: &str) -> bool {
+pub fn is_obviously_non_audio_url(url: &str) -> bool {
     let lower = url.to_lowercase();
     lower.contains(".html")
         || lower.contains(".htm")
@@ -300,7 +300,7 @@ pub(crate) fn is_obviously_non_audio_url(url: &str) -> bool {
 
 /// 使用正则从任意文本（非 JSON）中提取第一个 HTTP/HTTPS URL。
 /// 用于处理 HTML 响应、错误页面、或格式异常的文本中隐藏的音频 URL。
-pub(crate) fn extract_url_from_raw_text(text: &str) -> Option<String> {
+pub fn extract_url_from_raw_text(text: &str) -> Option<String> {
     // 简单扫描：查找 http:// 或 https:// 开头的子串
     for prefix in &["https://", "http://"] {
         if let Some(start) = text.find(prefix) {
@@ -327,7 +327,7 @@ pub(crate) fn extract_url_from_raw_text(text: &str) -> Option<String> {
 }
 
 /// 判断 URL 是否看起来像音频链接（包含常见音频扩展名或路径特征）
-pub(crate) fn looks_like_audio_url(url: &str) -> bool {
+pub fn looks_like_audio_url(url: &str) -> bool {
     let lower = url.to_lowercase();
     // 检查常见音频扩展名
     lower.contains(".mp3")
@@ -370,7 +370,7 @@ pub(crate) fn looks_like_audio_url(url: &str) -> bool {
 
 /// 检查文件头魔数是否为已知音频格式。
 /// 支持 MP3 (含 ID3 标签)、FLAC、RIFF/WAV、OGG、M4A/MP4、AAC ADTS、AIFF。
-pub(crate) fn is_valid_audio_header(bytes: &[u8]) -> bool {
+pub fn is_valid_audio_header(bytes: &[u8]) -> bool {
     if bytes.len() < 4 {
         return false;
     }

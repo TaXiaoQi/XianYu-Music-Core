@@ -24,7 +24,7 @@ fn mg_extract_lyric_urls(
     (pick("lrcUrl"), pick("mrcUrl"), pick("trcUrl"))
 }
 
-pub(crate) async fn fetch_mg_lyric(
+pub async fn fetch_mg_lyric(
     song_info: &LyricSongInfo,
 ) -> Result<Option<LyricResult>, String> {
     let copyright_id = match song_info.copyright_id.as_deref() {

@@ -3,7 +3,7 @@
 use super::*;
 use std::collections::HashMap;
 
-pub(crate) fn kg_filter_data(raw: &serde_json::Value) -> LxSearchItem {
+pub fn kg_filter_data(raw: &serde_json::Value) -> LxSearchItem {
     let mut types = Vec::new();
     let mut lx_types = HashMap::new();
 
@@ -158,7 +158,7 @@ pub(crate) fn kg_filter_data(raw: &serde_json::Value) -> LxSearchItem {
 /// 旧映射 kg_filter_data 对不上会导致歌单/专辑条目全空。
 /// duration 单位为秒（v9 歌单页为毫秒，由调用方先换算）；
 /// 无 hash 且无 songmid 的条目返回 None（对齐桌面端 kgItemToLx 的 null 过滤）。
-pub(crate) fn kg_filter_data_v3(raw: &serde_json::Value) -> Option<LxSearchItem> {
+pub fn kg_filter_data_v3(raw: &serde_json::Value) -> Option<LxSearchItem> {
     let hash = raw
         .get("hash")
         .and_then(|v| v.as_str())
@@ -308,7 +308,7 @@ fn kg_handle_result(raw_data: &serde_json::Value) -> Vec<LxSearchItem> {
     list
 }
 
-pub(crate) async fn search_kg(keyword: &str, limit: u32) -> Result<Vec<LxSearchItem>, String> {
+pub async fn search_kg(keyword: &str, limit: u32) -> Result<Vec<LxSearchItem>, String> {
     if limit <= super::SEARCH_PAGE_SIZE {
         return search_kg_page(keyword, 1, limit).await;
     }

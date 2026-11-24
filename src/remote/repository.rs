@@ -8,14 +8,14 @@ use uuid::Uuid;
 ///
 /// 移动端默认使用 [`NoopSecretStore`]：密码保留在数据库 `password` 字段，
 /// 不迁移到系统钥匙串，避免引入平台敏感依赖。
-pub(crate) trait SecretStore: Send + Sync {
+pub trait SecretStore: Send + Sync {
     fn read(&self, source_id: &str) -> Option<String>;
     fn write(&self, source_id: &str, password: &str) -> Result<(), String>;
     fn delete(&self, source_id: &str);
 }
 
 /// 无操作存储：读写均不落盘，密码由数据库字段承载。
-pub(crate) struct NoopSecretStore;
+pub struct NoopSecretStore;
 
 impl SecretStore for NoopSecretStore {
     fn read(&self, _source_id: &str) -> Option<String> {
@@ -90,13 +90,13 @@ fn normalize_root_path(value: Option<String>) -> String {
     }
 }
 
-pub(crate) fn remote_path_from_uri(uri: &str) -> Option<(String, String)> {
+pub fn remote_path_from_uri(uri: &str) -> Option<(String, String)> {
     let rest = uri.strip_prefix("remote://")?;
     let (source_id, path) = rest.split_once('/')?;
     Some((source_id.to_string(), format!("/{path}")))
 }
 
-pub(crate) fn list_sources(conn: &rusqlite::Connection) -> Result<Vec<RemoteSource>, String> {
+pub fn list_sources(conn: &rusqlite::Connection) -> Result<Vec<RemoteSource>, String> {
     let mut stmt = conn
         .prepare(
             "SELECT id, name, provider, base_url, username, password, root_path, enabled,
@@ -129,7 +129,7 @@ pub(crate) fn list_sources(conn: &rusqlite::Connection) -> Result<Vec<RemoteSour
     Ok(rows.filter_map(Result::ok).collect())
 }
 
-pub(crate) fn get_source(
+pub fn get_source(
     // get_source
     conn: &rusqlite::Connection,
     source_id: &str,
@@ -167,7 +167,7 @@ pub(crate) fn get_source(
     Ok(attach_store_password(source))
 }
 
-pub(crate) fn get_source_for_remote_uri(
+pub fn get_source_for_remote_uri(
     // get_source_for_remote_uri
     conn: &rusqlite::Connection,
     uri: &str,
@@ -196,7 +196,7 @@ pub(crate) fn get_source_for_remote_uri(
     Ok((source, remote_path, etag, Some(remote_uri)))
 }
 
-pub(crate) fn save_source(
+pub fn save_source(
     // save_source
     conn: &rusqlite::Connection,
     input: RemoteSourceInput,
@@ -257,7 +257,7 @@ pub(crate) fn save_source(
     Ok(get_source(conn, &id)?.into())
 }
 
-pub(crate) fn remove_source(
+pub fn remove_source(
     // remove_source
     conn: &mut rusqlite::Connection,
     source_id: &str,
@@ -278,7 +278,7 @@ pub(crate) fn remove_source(
     tx.commit().map_err(|error| error.to_string())
 }
 
-pub(crate) fn replace_remote_files(
+pub fn replace_remote_files(
     // replace_remote_files
     conn: &mut rusqlite::Connection,
     source_id: &str,
@@ -316,7 +316,7 @@ pub(crate) fn replace_remote_files(
     tx.commit().map_err(|error| error.to_string())
 }
 
-pub(crate) fn update_sync_status(
+pub fn update_sync_status(
     // update_sync_status
     conn: &rusqlite::Connection,
     source_id: &str,
@@ -333,7 +333,7 @@ pub(crate) fn update_sync_status(
     Ok(())
 }
 
-pub(crate) fn update_song_cache_path(
+pub fn update_song_cache_path(
     // update_song_cache_path
     conn: &rusqlite::Connection,
     remote_uri: &str,
@@ -348,7 +348,7 @@ pub(crate) fn update_song_cache_path(
     Ok(())
 }
 
-pub(crate) fn get_song_cache_path(
+pub fn get_song_cache_path(
     // get_song_cache_path
     conn: &rusqlite::Connection,
     remote_uri: &str,

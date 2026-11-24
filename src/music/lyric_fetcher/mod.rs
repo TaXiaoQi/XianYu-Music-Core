@@ -20,8 +20,8 @@ mod source_migu;
 mod source_tx;
 mod source_wy;
 
-pub(crate) use http_util::*;
-pub(crate) use qrc_crypto::*;
+pub use http_util::*;
+pub use qrc_crypto::*;
 use source_kg::*;
 use source_kw::*;
 use source_migu::*;
@@ -63,7 +63,7 @@ pub struct LyricResult {
 
 // ==================== Utility ====================
 
-pub(crate) fn decode_html_entities(s: &str) -> String {
+pub fn decode_html_entities(s: &str) -> String {
     s.replace("&amp;", "&")
         .replace("&lt;", "<")
         .replace("&gt;", ">")

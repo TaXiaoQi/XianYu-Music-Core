@@ -1,14 +1,14 @@
 use super::*;
 
 // ==================== 演唱者/和声标注（移植自桌面端 BakaMusic 体系） ====================
-pub(crate) static CREDIT_LINE_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static NON_SPEAKER_LABEL_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static SPEAKER_PREFIX_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static PARENTHETICAL_VOCAL_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static LQE_LIKE_MARKER_RE: OnceLock<Regex> = OnceLock::new();
+pub static CREDIT_LINE_RE: OnceLock<Regex> = OnceLock::new();
+pub static NON_SPEAKER_LABEL_RE: OnceLock<Regex> = OnceLock::new();
+pub static SPEAKER_PREFIX_RE: OnceLock<Regex> = OnceLock::new();
+pub static PARENTHETICAL_VOCAL_RE: OnceLock<Regex> = OnceLock::new();
+pub static LQE_LIKE_MARKER_RE: OnceLock<Regex> = OnceLock::new();
 
 /// 制作信息行（作词/作曲/编曲/演唱/混音等），不是可演唱歌词，应排除出主歌词。
-pub(crate) fn is_credit_line(text: &str) -> bool {
+pub fn is_credit_line(text: &str) -> bool {
     let re = CREDIT_LINE_RE.get_or_init(|| {
         Regex::new(r"^(?:(?:作)?词|(?:作)?詞|曲|作曲|编曲|編曲|词曲|詞曲|原唱|演唱|歌手|制作(?:人)?|製作(?:人)?|出品|发行|發行|策划|策劃|统筹|統籌|监制|監製|导演|導演|混音|母带|母帶|录音|錄音|和声|和聲|翻唱|原曲|歌名|歌曲|专辑|專輯|标题|標題|调教|調教|调声|調聲|曲绘|曲繪|曲絵|绘图|繪圖|画师|畫師|视频|視頻|映像|动画|動畫|written\s+by|vocal|lyrics?|lyricist|composer|music|arrange(?:r|ment)?|producer|produced\s+by|mix|master(?:ing)?|recording|staff|pv|mv|movie|video|animation|illustration|illustrator)\s*[:：]").unwrap()
     });
@@ -17,7 +17,7 @@ pub(crate) fn is_credit_line(text: &str) -> bool {
 
 /// 检测演唱者标签前缀（`A:`、`男:`、`v1:` 等），返回 (演唱者名, 去除前缀后的文本)。
 /// 排除制作信息行与 `http:` 等非演唱者标签。
-pub(crate) fn detect_speaker_prefix(text: &str) -> (Option<String>, String) {
+pub fn detect_speaker_prefix(text: &str) -> (Option<String>, String) {
     let trimmed = text.trim();
     if trimmed.is_empty() || is_credit_line(trimmed) {
         return (None, trimmed.to_string());
@@ -46,7 +46,7 @@ pub(crate) fn detect_speaker_prefix(text: &str) -> (Option<String>, String) {
 }
 
 /// 整行被 `()` 或 `[]` 整体包裹 → 背景和声行，返回去除包裹后的文本。
-pub(crate) fn strip_whole_wrapped(text: &str) -> Option<String> {
+pub fn strip_whole_wrapped(text: &str) -> Option<String> {
     let trimmed = text.trim();
     let inner = if trimmed.starts_with('(') && trimmed.ends_with(')') {
         &trimmed[1..trimmed.len() - 1]
@@ -62,16 +62,16 @@ pub(crate) fn strip_whole_wrapped(text: &str) -> Option<String> {
     Some(inner.to_string())
 }
 
-pub(crate) fn contains_kana(text: &str) -> bool {
+pub fn contains_kana(text: &str) -> bool {
     text.chars().any(is_kana_char)
 }
 
-pub(crate) fn contains_hangul(text: &str) -> bool {
+pub fn contains_hangul(text: &str) -> bool {
     text.chars().any(is_hangul_char)
 }
 
 /// 判断括号内容是否为和声段（含明确和声标记，或为短内容且非已知标签）。
-pub(crate) fn is_vocal_parenthetical(content: &str) -> bool {
+pub fn is_vocal_parenthetical(content: &str) -> bool {
     let trimmed = content.trim();
     if trimmed.is_empty() {
         return false;
@@ -118,7 +118,7 @@ pub(crate) fn is_vocal_parenthetical(content: &str) -> bool {
 
 /// 拆分主行内嵌的括号和声：`主唱 啦啦啦 (和声 哦哦哦)` → (主唱 啦啦啦, 和声 哦哦哦)。
 /// 假名/谚文括号通常是注音，跳过。
-pub(crate) fn split_parenthetical_vocal(text: &str) -> Option<(String, String)> {
+pub fn split_parenthetical_vocal(text: &str) -> Option<(String, String)> {
     let re =
         PARENTHETICAL_VOCAL_RE.get_or_init(|| Regex::new(r"[（(]([^()（）\r\n]+)[)）]").unwrap());
     let mut main_parts = Vec::new();
@@ -163,7 +163,7 @@ pub(crate) fn split_parenthetical_vocal(text: &str) -> Option<(String, String)> 
 
 /// 判断歌词是否呈现对唱/和声证据：存在演唱者标签前缀，或出现多个不同的括号和声段。
 /// 近似 BakaMusic 的"双歌手"门控——无对唱证据时不拆分括号，避免误伤普通括号歌词。
-pub(crate) fn has_duet_vocal_evidence(lines: &[ParsedLine]) -> bool {
+pub fn has_duet_vocal_evidence(lines: &[ParsedLine]) -> bool {
     let mut speaker_count = 0;
     let mut vocal_contents = HashSet::new();
     let re =
@@ -186,7 +186,7 @@ pub(crate) fn has_duet_vocal_evidence(lines: &[ParsedLine]) -> bool {
 }
 
 /// 对解析出的行做演唱者/和声标注：整行背景和声、演唱者前缀、括号和声拆分。
-pub(crate) fn annotate_line_vocals(lines: &mut Vec<ParsedLine>) {
+pub fn annotate_line_vocals(lines: &mut Vec<ParsedLine>) {
     let mut expanded = Vec::with_capacity(lines.len());
     for mut line in lines.drain(..) {
         if let Some(inner) = strip_whole_wrapped(&line.text) {
@@ -232,7 +232,7 @@ pub(crate) fn annotate_line_vocals(lines: &mut Vec<ParsedLine>) {
 
 /// 解析 LRC 头部元数据标签：`[offset:±ms]`、`[ti:标题]`、`[ar:歌手]`、`[al:专辑]`、
 /// `[by:编辑者]`、`[re:制作]`、`[ve:版本]`。`offset` 为正表示歌词整体延后，负表示提前。
-pub(crate) fn extract_lyrics_meta(raw: &str) -> LyricsMeta {
+pub fn extract_lyrics_meta(raw: &str) -> LyricsMeta {
     let mut meta = LyricsMeta::default();
     for line in raw.lines() {
         let trimmed = line.trim();
@@ -279,7 +279,7 @@ pub(crate) fn extract_lyrics_meta(raw: &str) -> LyricsMeta {
 }
 
 /// 对解析出的行应用 `[offset:]` 时间偏移（含逐字词时间）。
-pub(crate) fn apply_lyrics_offset(lines: &mut [ParsedLine], offset_ms: i64) {
+pub fn apply_lyrics_offset(lines: &mut [ParsedLine], offset_ms: i64) {
     if offset_ms == 0 {
         return;
     }
@@ -298,7 +298,7 @@ pub(crate) fn apply_lyrics_offset(lines: &mut [ParsedLine], offset_ms: i64) {
 /// LRC 里的空时间行可能是上一句的收尾标记，也可能只是音源用来和翻译、罗马音
 /// 逐行对齐的占位。只有后面确实接着一段静默（≥4s）时才当作收尾采信，否则上一句
 /// 会在还在演唱时就被截断淡出。空行本身不进入渲染。
-pub(crate) fn finalize_lrc_blank_lines(lines: Vec<ParsedLine>) -> Vec<ParsedLine> {
+pub fn finalize_lrc_blank_lines(lines: Vec<ParsedLine>) -> Vec<ParsedLine> {
     const BLANK_LINE_INTERLUDE_MS: u32 = 4000;
     let mut meaningful: Vec<ParsedLine> = Vec::with_capacity(lines.len());
     for (index, line) in lines.iter().enumerate() {
@@ -330,7 +330,7 @@ pub(crate) fn finalize_lrc_blank_lines(lines: Vec<ParsedLine>) -> Vec<ParsedLine
 }
 
 /// 解析前的文本预处理：统一换行、解码 HTML 实体、还原转义换行、过滤注释行。
-pub(crate) fn preprocess_lyrics_text(raw: &str) -> String {
+pub fn preprocess_lyrics_text(raw: &str) -> String {
     let mut normalized = raw
         .replace('\u{FEFF}', "")
         .replace("\r\n", "\n")
@@ -362,7 +362,7 @@ pub(crate) fn preprocess_lyrics_text(raw: &str) -> String {
 }
 
 /// 纯文本兜底：无任何时间戳时，按非空文本行合成均匀时间戳（每行 3 秒）。
-pub(crate) fn synthesize_plain_text_lines(raw: &str) -> Vec<ParsedLine> {
+pub fn synthesize_plain_text_lines(raw: &str) -> Vec<ParsedLine> {
     let mut lines = Vec::new();
     let mut start_ms = 0u32;
     for (index, line) in raw.lines().enumerate() {
@@ -396,7 +396,7 @@ pub(crate) fn synthesize_plain_text_lines(raw: &str) -> Vec<ParsedLine> {
 
 /// 网易云逐字歌词 JSON 格式：`[{"t":1234,"c":[{"tx":"你"},{"tx":"好"}]}, ...]`。
 /// 每行含 `t`（起始毫秒）、`c`（逐字数组，`tx` 为文本），部分行带 `x`（结束毫秒）。
-pub(crate) fn parse_netease_json_word_lrc(raw: &str) -> Vec<ParsedLine> {
+pub fn parse_netease_json_word_lrc(raw: &str) -> Vec<ParsedLine> {
     let value: serde_json::Value = match serde_json::from_str(raw.trim()) {
         Ok(value) => value,
         Err(_) => return Vec::new(),
@@ -470,7 +470,7 @@ pub(crate) fn parse_netease_json_word_lrc(raw: &str) -> Vec<ParsedLine> {
 
 /// Lyricify Quick Export（LQE）与 LyricifyLines（LYL）共用行格式：`[start,end,type]text`。
 /// start/end 为毫秒，type 为演唱者类型（0 主唱、1 背景等）。头部行（如 `[Lyricify Quick Export]`）不含数字参数，自动跳过。
-pub(crate) fn parse_lqe_like(raw: &str) -> Vec<ParsedLine> {
+pub fn parse_lqe_like(raw: &str) -> Vec<ParsedLine> {
     let marker_re =
         LQE_LIKE_MARKER_RE.get_or_init(|| Regex::new(r"^\[(\d+),(\d+)(?:,(\d+))?\]").unwrap());
     let mut result = Vec::new();
@@ -517,7 +517,7 @@ pub(crate) fn parse_lqe_like(raw: &str) -> Vec<ParsedLine> {
     result
 }
 
-pub(crate) fn consume_square_timestamp_block(source: &str) -> Option<(usize, String)> {
+pub fn consume_square_timestamp_block(source: &str) -> Option<(usize, String)> {
     if !source.starts_with('[') {
         return None;
     }
@@ -528,7 +528,7 @@ pub(crate) fn consume_square_timestamp_block(source: &str) -> Option<(usize, Str
     Some((end + 1, block.to_string()))
 }
 
-pub(crate) fn normalize_eslrc_source(source: &str) -> String {
+pub fn normalize_eslrc_source(source: &str) -> String {
     source
         .lines()
         .map(|line| {
@@ -580,7 +580,7 @@ pub(crate) fn normalize_eslrc_source(source: &str) -> String {
         .join("\n")
 }
 
-pub(crate) fn parse_timestamp_to_ms(raw: &str) -> Option<u32> {
+pub fn parse_timestamp_to_ms(raw: &str) -> Option<u32> {
     let trimmed = raw.trim();
     let mut parts = trimmed.split(':');
     let minutes = parts.next()?.parse::<u32>().ok()?;
@@ -615,7 +615,7 @@ pub(crate) fn parse_timestamp_to_ms(raw: &str) -> Option<u32> {
     Some(minutes * 60_000 + seconds * 1_000 + milliseconds)
 }
 
-pub(crate) fn parse_ttml_clock_to_ms(raw: &str) -> Option<u32> {
+pub fn parse_ttml_clock_to_ms(raw: &str) -> Option<u32> {
     if let Some(milliseconds) = raw.strip_suffix("ms") {
         return milliseconds.trim().parse::<u32>().ok();
     }
@@ -632,7 +632,7 @@ pub(crate) fn parse_ttml_clock_to_ms(raw: &str) -> Option<u32> {
     None
 }
 
-pub(crate) fn is_latin_char(ch: char) -> bool {
+pub fn is_latin_char(ch: char) -> bool {
     ch.is_ascii_alphabetic()
         || matches!(
             ch as u32,
@@ -640,19 +640,19 @@ pub(crate) fn is_latin_char(ch: char) -> bool {
         )
 }
 
-pub(crate) fn is_kana_char(ch: char) -> bool {
+pub fn is_kana_char(ch: char) -> bool {
     matches!(ch as u32, 0x3040..=0x30FF | 0x31F0..=0x31FF | 0xFF66..=0xFF9F)
 }
 
-pub(crate) fn is_hangul_char(ch: char) -> bool {
+pub fn is_hangul_char(ch: char) -> bool {
     matches!(ch as u32, 0xAC00..=0xD7AF | 0x1100..=0x11FF | 0x3130..=0x318F)
 }
 
-pub(crate) fn is_han_char(ch: char) -> bool {
+pub fn is_han_char(ch: char) -> bool {
     matches!(ch as u32, 0x3400..=0x4DBF | 0x4E00..=0x9FFF | 0xF900..=0xFAFF)
 }
 
-pub(crate) fn resolve_dominant_script(
+pub fn resolve_dominant_script(
     latin_count: u32,
     han_count: u32,
     kana_count: u32,
@@ -682,7 +682,7 @@ pub(crate) fn resolve_dominant_script(
     dominant
 }
 
-pub(crate) fn get_line_script_profile(text: &str) -> LineScriptProfile {
+pub fn get_line_script_profile(text: &str) -> LineScriptProfile {
     let mut latin_count = 0;
     let mut han_count = 0;
     let mut kana_count = 0;
@@ -711,11 +711,11 @@ pub(crate) fn get_line_script_profile(text: &str) -> LineScriptProfile {
     }
 }
 
-pub(crate) fn is_japanese_like(profile: &LineScriptProfile) -> bool {
+pub fn is_japanese_like(profile: &LineScriptProfile) -> bool {
     profile.kana_count > 0 && profile.hangul_count == 0
 }
 
-pub(crate) fn same_script_family(left: &DominantScript, right: &DominantScript) -> bool {
+pub fn same_script_family(left: &DominantScript, right: &DominantScript) -> bool {
     let family = |script: &DominantScript| match script {
         DominantScript::Latin => "latin",
         DominantScript::Han | DominantScript::Kana | DominantScript::Mixed => "cjk",
@@ -726,14 +726,14 @@ pub(crate) fn same_script_family(left: &DominantScript, right: &DominantScript) 
     family(left) == family(right)
 }
 
-pub(crate) fn track_has_japanese_like_lines(track: &LyricTrack) -> bool {
+pub fn track_has_japanese_like_lines(track: &LyricTrack) -> bool {
     track
         .lines
         .iter()
         .any(|line| is_japanese_like(&line.script_profile))
 }
 
-pub(crate) fn map_track_source_format(
+pub fn map_track_source_format(
     source_format: &ParsedLineSourceFormat,
 ) -> LyricTrackSourceFormat {
     match source_format {
@@ -747,11 +747,11 @@ pub(crate) fn map_track_source_format(
     }
 }
 
-pub(crate) fn compare_source_index(left: f64, right: f64) -> Ordering {
+pub fn compare_source_index(left: f64, right: f64) -> Ordering {
     left.partial_cmp(&right).unwrap_or(Ordering::Equal)
 }
 
-pub(crate) fn sort_parsed_lines(lines: &mut [ParsedLine]) {
+pub fn sort_parsed_lines(lines: &mut [ParsedLine]) {
     lines.sort_by(|left, right| {
         left.start_ms
             .cmp(&right.start_ms)
@@ -760,7 +760,7 @@ pub(crate) fn sort_parsed_lines(lines: &mut [ParsedLine]) {
     });
 }
 
-pub(crate) fn normalize_end_times(lines: &mut [ParsedLine]) {
+pub fn normalize_end_times(lines: &mut [ParsedLine]) {
     sort_parsed_lines(lines);
 
     for index in 0..lines.len() {
@@ -771,7 +771,7 @@ pub(crate) fn normalize_end_times(lines: &mut [ParsedLine]) {
     }
 }
 
-pub(crate) fn parser_priority(source_format: &ParsedLineSourceFormat) -> i32 {
+pub fn parser_priority(source_format: &ParsedLineSourceFormat) -> i32 {
     match source_format {
         ParsedLineSourceFormat::EnhancedLrc => 6,
         ParsedLineSourceFormat::Ttml => 5,
@@ -783,7 +783,7 @@ pub(crate) fn parser_priority(source_format: &ParsedLineSourceFormat) -> i32 {
     }
 }
 
-pub(crate) fn score_prepared_lines(lines: &[ParsedLine]) -> i32 {
+pub fn score_prepared_lines(lines: &[ParsedLine]) -> i32 {
     lines.iter().fold(0, |score, line| {
         score
             + if line
@@ -819,7 +819,7 @@ pub(crate) fn score_prepared_lines(lines: &[ParsedLine]) -> i32 {
     })
 }
 
-pub(crate) fn compare_parser_candidates(
+pub fn compare_parser_candidates(
     left: &ParserCandidate,
     right: &ParserCandidate,
 ) -> Ordering {
@@ -829,7 +829,7 @@ pub(crate) fn compare_parser_candidates(
         .then_with(|| parser_priority(&right.source).cmp(&parser_priority(&left.source)))
 }
 
-pub(crate) fn detect_explicit_role(text: &str) -> (Option<ExplicitLineRole>, String) {
+pub fn detect_explicit_role(text: &str) -> (Option<ExplicitLineRole>, String) {
     let trimmed = sanitize_line_text(text);
     if trimmed.is_empty() {
         return (None, trimmed);
@@ -878,7 +878,7 @@ pub(crate) fn detect_explicit_role(text: &str) -> (Option<ExplicitLineRole>, Str
     (None, trimmed)
 }
 
-pub(crate) fn to_safe_ms(value: u64, fallback: u32) -> u32 {
+pub fn to_safe_ms(value: u64, fallback: u32) -> u32 {
     value
         .try_into()
         .ok()
@@ -886,7 +886,7 @@ pub(crate) fn to_safe_ms(value: u64, fallback: u32) -> u32 {
         .unwrap_or(fallback)
 }
 
-pub(crate) fn prepare_source_line(
+pub fn prepare_source_line(
     line: &SourceLine,
     source_format: ParsedLineSourceFormat,
     source_index: usize,
@@ -973,7 +973,7 @@ pub(crate) fn prepare_source_line(
     })
 }
 
-pub(crate) fn collect_markers(text: &str, open: char, close: char) -> Vec<(usize, usize, u32)> {
+pub fn collect_markers(text: &str, open: char, close: char) -> Vec<(usize, usize, u32)> {
     let mut result = Vec::new();
     let mut index = 0usize;
 
@@ -1000,7 +1000,7 @@ pub(crate) fn collect_markers(text: &str, open: char, close: char) -> Vec<(usize
     result
 }
 
-pub(crate) fn parse_inline_square_timed_line(
+pub fn parse_inline_square_timed_line(
     line: &str,
     source_index: usize,
 ) -> Option<ParsedLine> {
@@ -1071,7 +1071,7 @@ pub(crate) fn parse_inline_square_timed_line(
 
 /// 判定词内尖括号时间是否为相对行首的偏移（与桌面端同规则）：
 /// 首词几乎为 0，或全部词时间远小于行起点时视为相对偏移。
-pub(crate) fn should_use_relative_angle_word_time(line_start_ms: u32, word_times: &[u32]) -> bool {
+pub fn should_use_relative_angle_word_time(line_start_ms: u32, word_times: &[u32]) -> bool {
     if line_start_ms == 0 || word_times.is_empty() {
         return false;
     }
@@ -1080,7 +1080,7 @@ pub(crate) fn should_use_relative_angle_word_time(line_start_ms: u32, word_times
     first <= 10 || (first + 500 < line_start_ms && last < line_start_ms + 500)
 }
 
-pub(crate) fn parse_enhanced_lrc_line(line: &str, source_index: usize) -> Option<ParsedLine> {
+pub fn parse_enhanced_lrc_line(line: &str, source_index: usize) -> Option<ParsedLine> {
     let leading = collect_markers(line, '[', ']');
     let (_, body_start, line_start_ms) = *leading.first()?;
     let body = &line[body_start..];
@@ -1179,7 +1179,7 @@ pub(crate) fn parse_enhanced_lrc_line(line: &str, source_index: usize) -> Option
     })
 }
 
-pub(crate) fn parse_plain_lrc_line(line: &str, source_index: usize) -> Vec<ParsedLine> {
+pub fn parse_plain_lrc_line(line: &str, source_index: usize) -> Vec<ParsedLine> {
     let markers = collect_markers(line, '[', ']');
     if markers.is_empty() {
         return Vec::new();
@@ -1238,12 +1238,12 @@ pub(crate) fn parse_plain_lrc_line(line: &str, source_index: usize) -> Vec<Parse
         .collect()
 }
 
-pub(crate) fn strip_xml_tags(raw: &str) -> String {
+pub fn strip_xml_tags(raw: &str) -> String {
     let re = XML_TAG_RE.get_or_init(|| Regex::new(r"(?s)<[^>]+>").unwrap());
     sanitize_line_text(&re.replace_all(raw, "").to_string())
 }
 
-pub(crate) fn parse_ttml(raw: &str) -> Vec<ParsedLine> {
+pub fn parse_ttml(raw: &str) -> Vec<ParsedLine> {
     let paragraph_re =
         TTML_PARAGRAPH_RE.get_or_init(|| Regex::new(r#"(?s)<p\b([^>]*)>(.*?)</p>"#).unwrap());
     let begin_re = TTML_BEGIN_RE.get_or_init(|| Regex::new(r#"(?i)\bbegin="([^"]+)""#).unwrap());
@@ -1351,7 +1351,7 @@ pub(crate) fn parse_ttml(raw: &str) -> Vec<ParsedLine> {
     lines
 }
 
-pub(crate) fn parse_manual_lrc_like(raw: &str) -> Vec<ParsedLine> {
+pub fn parse_manual_lrc_like(raw: &str) -> Vec<ParsedLine> {
     let mut lines = Vec::new();
     for (index, line) in raw.lines().enumerate() {
         let trimmed = line.trim();
@@ -1373,7 +1373,7 @@ pub(crate) fn parse_manual_lrc_like(raw: &str) -> Vec<ParsedLine> {
 /// 把主歌词 XML 尾部的译文 LRC 行按时间戳就近关联到主行 translated_text
 /// （QQ/Baka 链路：解密 QRC XML + 插件译文 LRC 拼成一份 raw）。仅填空位不
 /// 覆盖已有翻译；时间差超过 2s 视为对不上、丢弃。
-pub(crate) fn attach_lrc_translation_lines(lines: &mut [ParsedLine], tail: &str) {
+pub fn attach_lrc_translation_lines(lines: &mut [ParsedLine], tail: &str) {
     let translation_lines = parse_manual_lrc_like(tail);
     if translation_lines.is_empty() || lines.is_empty() {
         return;
@@ -1411,7 +1411,7 @@ pub(crate) fn attach_lrc_translation_lines(lines: &mut [ParsedLine], tail: &str)
     }
 }
 
-pub(crate) fn collect_candidate(
+pub fn collect_candidate(
     candidates: &mut Vec<ParserCandidate>,
     source: ParsedLineSourceFormat,
     mut lines: Vec<ParsedLine>,
@@ -1438,7 +1438,7 @@ pub(crate) fn collect_candidate(
     });
 }
 
-pub(crate) fn parse_raw_lyrics(raw: &str) -> Vec<ParsedLine> {
+pub fn parse_raw_lyrics(raw: &str) -> Vec<ParsedLine> {
     let normalized = preprocess_lyrics_text(raw);
 
     let mut candidates = Vec::new();

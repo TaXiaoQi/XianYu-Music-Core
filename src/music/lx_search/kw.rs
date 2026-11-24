@@ -145,7 +145,7 @@ fn kw_handle_result(raw_data: &serde_json::Value) -> Option<Vec<LxSearchItem>> {
     Some(result)
 }
 
-pub(crate) async fn search_kw(keyword: &str, limit: u32) -> Result<Vec<LxSearchItem>, String> {
+pub async fn search_kw(keyword: &str, limit: u32) -> Result<Vec<LxSearchItem>, String> {
     if limit <= super::SEARCH_PAGE_SIZE {
         return search_kw_page(keyword, 1, limit).await;
     }

@@ -2,7 +2,7 @@
 
 use super::*;
 
-pub(crate) fn hex_to_bytes(hex: &str) -> Vec<u8> {
+pub fn hex_to_bytes(hex: &str) -> Vec<u8> {
     let hex = hex.trim();
     (0..hex.len())
         .step_by(2)
@@ -10,7 +10,7 @@ pub(crate) fn hex_to_bytes(hex: &str) -> Vec<u8> {
         .collect()
 }
 
-pub(crate) fn is_valid_base64(s: &str) -> bool {
+pub fn is_valid_base64(s: &str) -> bool {
     if s.len() < 4 {
         return false;
     }
@@ -19,7 +19,7 @@ pub(crate) fn is_valid_base64(s: &str) -> bool {
         && s.len() % 4 == 0
 }
 
-pub(crate) fn pad_base64(input: &str) -> String {
+pub fn pad_base64(input: &str) -> String {
     let mut s = input.to_string();
     while s.len() % 4 != 0 {
         s.push('=');
@@ -73,28 +73,28 @@ const SBOX: [[u8; 64]; 8] = [
 ];
 
 #[inline]
-pub(crate) fn bitnum(a: &[u8], b: usize, c: u32) -> u32 {
+pub fn bitnum(a: &[u8], b: usize, c: u32) -> u32 {
     let index = (b / 32) * 4 + 3 - (b % 32) / 8;
     let shift = 7 - (b % 8);
     (((a[index] >> shift) & 1) as u32) << c
 }
 
 #[inline]
-pub(crate) fn bitnum_intr(a: u32, b: u32, c: u32) -> u32 {
+pub fn bitnum_intr(a: u32, b: u32, c: u32) -> u32 {
     ((a >> (31 - b)) & 1) << c
 }
 
 #[inline]
-pub(crate) fn bitnum_intl(a: u32, b: u32, c: u32) -> u32 {
+pub fn bitnum_intl(a: u32, b: u32, c: u32) -> u32 {
     ((a << b) & 0x80000000) >> c
 }
 
 #[inline]
-pub(crate) fn sbox_bit(a: u32) -> usize {
+pub fn sbox_bit(a: u32) -> usize {
     ((a & 32) | ((a & 31) >> 1) | ((a & 1) << 4)) as usize
 }
 
-pub(crate) fn initial_permutation(input: &[u8]) -> (u32, u32) {
+pub fn initial_permutation(input: &[u8]) -> (u32, u32) {
     let s0 = bitnum(input, 57, 31)
         | bitnum(input, 49, 30)
         | bitnum(input, 41, 29)
@@ -164,7 +164,7 @@ pub(crate) fn initial_permutation(input: &[u8]) -> (u32, u32) {
     (s0, s1)
 }
 
-pub(crate) fn inverse_permutation(s0: u32, s1: u32) -> [u8; 8] {
+pub fn inverse_permutation(s0: u32, s1: u32) -> [u8; 8] {
     let mut data = [0u8; 8];
     data[3] = (bitnum_intr(s1, 7, 7)
         | bitnum_intr(s0, 7, 6)
@@ -233,7 +233,7 @@ pub(crate) fn inverse_permutation(s0: u32, s1: u32) -> [u8; 8] {
     data
 }
 
-pub(crate) fn des_f(state: u32, key: &[u8; 6]) -> u32 {
+pub fn des_f(state: u32, key: &[u8; 6]) -> u32 {
     let t1 = bitnum_intl(state, 31, 0)
         | ((state & 0xf0000000) >> 1)
         | bitnum_intl(state, 4, 5)
@@ -325,7 +325,7 @@ pub(crate) fn des_f(state: u32, key: &[u8; 6]) -> u32 {
         | bitnum_intl(output_state, 24, 31)
 }
 
-pub(crate) fn des_crypt(input: &[u8], key: &[[u8; 6]; 16]) -> [u8; 8] {
+pub fn des_crypt(input: &[u8], key: &[[u8; 6]; 16]) -> [u8; 8] {
     let (mut s0, mut s1) = initial_permutation(input);
     for idx in 0..15 {
         let prev_s1 = s1;
@@ -336,7 +336,7 @@ pub(crate) fn des_crypt(input: &[u8], key: &[[u8; 6]; 16]) -> [u8; 8] {
     inverse_permutation(s0, s1)
 }
 
-pub(crate) fn des_key_schedule(key: &[u8], mode: u32) -> [[u8; 6]; 16] {
+pub fn des_key_schedule(key: &[u8], mode: u32) -> [[u8; 6]; 16] {
     let mut schedule = [[0u8; 6]; 16];
     let key_rnd_shift = [1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1];
     let key_perm_c = [
@@ -392,7 +392,7 @@ const QRC_KEY3: &[u8; 8] = b"!@#)(*$%";
 /// 解密插件/原生接口返回的 QQ QRC 加密歌词密文（hex）。
 /// 算法与 BakaMusic 一致：D(KEY1) -> E(KEY2) -> D(KEY3) 三段自定义 DES，
 /// 产物为标准 zlib 流（老密文偶见 sync-flush/裸 deflate 变体，保留多路尝试）。
-pub(crate) fn qrc_decrypt(encrypted_hex: &str) -> Result<String, String> {
+pub fn qrc_decrypt(encrypted_hex: &str) -> Result<String, String> {
     let encrypted_hex = encrypted_hex.trim();
     if encrypted_hex.is_empty() || encrypted_hex.len() % 2 != 0 {
         return Err("Invalid hex data".to_string());

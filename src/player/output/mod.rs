@@ -20,13 +20,13 @@ use serde::{Deserialize, Serialize};
 // decoder/diag 基础设施被 ohos_audio / coreaudio 复用，模块在
 // any(android, ohos, ios) 下编译，AAudio 相关子模块在其内部再按 android 门控。
 #[cfg(any(target_os = "android", target_env = "ohos", target_os = "ios"))]
-pub(crate) mod android_aaudio;
+pub mod android_aaudio;
 
 #[cfg(target_env = "ohos")]
-pub(crate) mod ohos_audio;
+pub mod ohos_audio;
 
 #[cfg(target_os = "ios")]
-pub(crate) mod coreaudio;
+pub mod coreaudio;
 
 /// 独占播放启动请求。
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -5,13 +5,13 @@ use super::*;
 // Symphonia 解码器（BlockProducer）
 // =========================================================================
 
-pub(crate) struct SymphoniaDecoder {
+pub struct SymphoniaDecoder {
     format_reader: Box<dyn symphonia::core::formats::FormatReader>,
     decoder: Box<dyn symphonia::core::codecs::Decoder>,
     track_id: u32,
-    pub(crate) sample_rate: u32,
-    pub(crate) channels: u16,
-    pub(crate) total_duration: Option<Duration>,
+    pub sample_rate: u32,
+    pub channels: u16,
+    pub total_duration: Option<Duration>,
     sample_buf: Option<symphonia::core::audio::SampleBuffer<f32>>,
     sample_buf_frames: usize,
     leftover: Vec<f32>,
@@ -33,15 +33,15 @@ pub(crate) struct SymphoniaDecoder {
 
 /// 流缓存下载状态快照：Seek 诊断与死亡消息用，用于区分「symphonia 层失败」
 /// 与「下载线程已死/断流」（真机 DLNA 实测 seek 失败后即 EOF，需看到下载态）。
-pub(crate) struct CacheDiag {
-    pub(crate) downloaded_bytes: Arc<std::sync::atomic::AtomicU64>,
-    pub(crate) download_complete: Arc<AtomicBool>,
-    pub(crate) download_failed: Arc<AtomicBool>,
-    pub(crate) download_error: Arc<std::sync::Mutex<Option<String>>>,
+pub struct CacheDiag {
+    pub downloaded_bytes: Arc<std::sync::atomic::AtomicU64>,
+    pub download_complete: Arc<AtomicBool>,
+    pub download_failed: Arc<AtomicBool>,
+    pub download_error: Arc<std::sync::Mutex<Option<String>>>,
 }
 
 impl CacheDiag {
-    pub(crate) fn snapshot(&self) -> String {
+    pub fn snapshot(&self) -> String {
         let err = self
             .download_error
             .lock()
@@ -63,7 +63,7 @@ impl CacheDiag {
 /// `total_shared` 为共享总长槽位（0 = 未知）：symphonia FLAC/MP3 demuxer 的
 /// seek 依赖 `byte_len()` 提供二分上界，缺失时报 "stream is not seekable"
 /// 导致 DMR/手动 seek 后管线死亡（2026-09-26 实锤）。
-pub(crate) struct StreamCacheMediaReader {
+pub struct StreamCacheMediaReader {
     inner: Box<dyn crate::player::stream_cache::ReadSeek + Send + Sync>,
     total_shared: Option<Arc<std::sync::atomic::AtomicU64>>,
 }
@@ -103,7 +103,7 @@ impl SymphoniaDecoder {
     /// `stream_reader`：预构建的流缓存 Reader（在线直读，对齐桌面端
     /// StreamingTempFile 模型）。Some 时跳过文件/HTTP 源构造，`path` 仅用于
     /// 扩展名探测提示（应为流缓存直链 URL）。
-    pub(crate) fn open(
+    pub fn open(
         path: &str,
         stream_reader: Option<Box<dyn crate::player::stream_cache::ReadSeek + Send + Sync>>,
         stream_state: Option<crate::player::stream_cache::StreamingTempFileState>,
@@ -414,16 +414,16 @@ impl SymphoniaDecoder {
 /// 记录/读取解码线程最近一次错误（诊断用：音频线程 EOF 退出时读出，
 /// 随 status 的 lastError 上报 Flutter）。Symphonia 把网络读失败与自然
 /// EOF 都折叠成 produce()==None，这里负责保留真实死因。
-pub(crate) static DECODER_LAST_ERROR: OnceLock<Mutex<Option<String>>> = OnceLock::new();
+pub static DECODER_LAST_ERROR: OnceLock<Mutex<Option<String>>> = OnceLock::new();
 
-pub(crate) fn record_decoder_error(msg: &str) {
+pub fn record_decoder_error(msg: &str) {
     let slot = DECODER_LAST_ERROR.get_or_init(|| Mutex::new(None));
     if let Ok(mut guard) = slot.lock() {
         *guard = Some(msg.to_string());
     }
 }
 
-pub(crate) fn take_decoder_error() -> Option<String> {
+pub fn take_decoder_error() -> Option<String> {
     let slot = DECODER_LAST_ERROR.get_or_init(|| Mutex::new(None));
     slot.lock().ok().and_then(|mut g| g.take())
 }

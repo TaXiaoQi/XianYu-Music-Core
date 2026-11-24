@@ -8,28 +8,28 @@ use super::*;
 // （需按 [kuwo:xxx] 八进制标签解码系数）。parse_raw_lyrics 只认绝对时间戳，
 // 不转换的话逐字标记会被当普通文本，整行退化为行级 LRC，逐字静默丢失。
 
-pub(crate) static LX_WORD_TAG_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static ABS_WORD_TAG_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static LX_LINE_TIME_RE: OnceLock<Regex> = OnceLock::new();
-pub(crate) static KUWO_TAG_RE: OnceLock<Regex> = OnceLock::new();
+pub static LX_WORD_TAG_RE: OnceLock<Regex> = OnceLock::new();
+pub static ABS_WORD_TAG_RE: OnceLock<Regex> = OnceLock::new();
+pub static LX_LINE_TIME_RE: OnceLock<Regex> = OnceLock::new();
+pub static KUWO_TAG_RE: OnceLock<Regex> = OnceLock::new();
 
-pub(crate) fn lx_word_tag_re() -> &'static Regex {
+pub fn lx_word_tag_re() -> &'static Regex {
     LX_WORD_TAG_RE.get_or_init(|| Regex::new(r"<(-?\d+),(-?\d+)(?:,-?\d+)?>").unwrap())
 }
 
-pub(crate) fn abs_word_tag_re() -> &'static Regex {
+pub fn abs_word_tag_re() -> &'static Regex {
     ABS_WORD_TAG_RE.get_or_init(|| Regex::new(r"<\d+:\d{2}(?:\.\d+)?>").unwrap())
 }
 
-pub(crate) fn lx_line_time_re() -> &'static Regex {
+pub fn lx_line_time_re() -> &'static Regex {
     LX_LINE_TIME_RE.get_or_init(|| Regex::new(r"^\[(\d+:\d{2}(?:\.\d+)?)](.*)$").unwrap())
 }
 
-pub(crate) fn kuwo_tag_re() -> &'static Regex {
+pub fn kuwo_tag_re() -> &'static Regex {
     KUWO_TAG_RE.get_or_init(|| Regex::new(r"(?i)^\[kuwo:\s*(\S+)\s*]").unwrap())
 }
 
-pub(crate) fn ms_to_timestamp(ms: i64) -> String {
+pub fn ms_to_timestamp(ms: i64) -> String {
     let safe = ms.max(0);
     let total_seconds = safe / 1000;
     format!(
@@ -41,7 +41,7 @@ pub(crate) fn ms_to_timestamp(ms: i64) -> String {
 }
 
 /// 向下取整除法（与 JS Math.floor 语义一致，用于酷我解码）。
-pub(crate) fn floor_div(a: i64, b: i64) -> i64 {
+pub fn floor_div(a: i64, b: i64) -> i64 {
     let q = a / b;
     if a % b != 0 && ((a < 0) != (b < 0)) {
         q - 1
@@ -51,16 +51,16 @@ pub(crate) fn floor_div(a: i64, b: i64) -> i64 {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct LxWordEntry {
+pub struct LxWordEntry {
     /// 标记在正文中的字节区间（词文本位于标记前或标记后，取决于来源格式）。
-    pub(crate) index: usize,
-    pub(crate) end_index: usize,
-    pub(crate) start_ms: i64,
-    pub(crate) end_ms: i64,
+    pub index: usize,
+    pub end_index: usize,
+    pub start_ms: i64,
+    pub end_ms: i64,
 }
 
 /// 构建候选时间表并打分：score 越小越优（无效标记/时间倒退/负起点/偏离行首均罚分）。
-pub(crate) fn lx_build_candidate(
+pub fn lx_build_candidate(
     word_times: &[(i64, i64, usize, usize)],
     line_start_ms: Option<i64>,
     kuwo_mode: bool,
@@ -138,7 +138,7 @@ pub(crate) fn lx_build_candidate(
 }
 
 /// relative / kuwo 双候选打分选优；酷我特征强制 kuwo 解码。
-pub(crate) fn lx_select_entries(
+pub fn lx_select_entries(
     word_times: &[(i64, i64, usize, usize)],
     line_start_ms: Option<i64>,
     force_kuwo: bool,
@@ -169,7 +169,7 @@ pub(crate) fn lx_select_entries(
 /// 酷我原始格式 字<offset,duration>（时间戳在字后）。两种都归一为 <abs>字 序列，
 /// 行尾附结束标记——Enhanced LRC 要求正文以 <绝对时间> 开头，否则解析器
 /// 按普通 LRC 处理导致逐字丢失。
-pub(crate) fn lx_build_enhanced_body(body: &str, entries: &[LxWordEntry]) -> String {
+pub fn lx_build_enhanced_body(body: &str, entries: &[LxWordEntry]) -> String {
     if entries.is_empty() {
         return String::new();
     }
@@ -211,7 +211,7 @@ pub(crate) fn lx_build_enhanced_body(body: &str, entries: &[LxWordEntry]) -> Str
 
 /// 把 LX 相对逐字格式（<offset,duration>字，酷我可带负值编码）转换为
 /// 绝对时间戳 Enhanced LRC。返回 None 表示没有可转换的行（调用方保留原文）。
-pub(crate) fn convert_lx_relative_to_enhanced(raw: &str) -> Option<String> {
+pub fn convert_lx_relative_to_enhanced(raw: &str) -> Option<String> {
     let lines: Vec<&str> = raw.split('\n').map(str::trim).collect();
 
     // 酷我是文件级格式（不是逐行格式）：[kuwo:xxx] 八进制标签解码出两组系数；

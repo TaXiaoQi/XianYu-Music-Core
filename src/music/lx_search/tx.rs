@@ -49,7 +49,7 @@ fn tx_pick_search_raw_list(data: &serde_json::Value) -> Option<&serde_json::Valu
     None
 }
 
-pub(crate) fn tx_handle_result(raw_list: &serde_json::Value) -> Vec<LxSearchItem> {
+pub fn tx_handle_result(raw_list: &serde_json::Value) -> Vec<LxSearchItem> {
     let mut list = Vec::new();
     let arr = match raw_list.as_array() {
         Some(a) => a,
@@ -288,7 +288,7 @@ pub(crate) fn tx_handle_result(raw_list: &serde_json::Value) -> Vec<LxSearchItem
     list
 }
 
-pub(crate) async fn search_tx(keyword: &str, limit: u32) -> Result<Vec<LxSearchItem>, String> {
+pub async fn search_tx(keyword: &str, limit: u32) -> Result<Vec<LxSearchItem>, String> {
     if limit <= super::SEARCH_PAGE_SIZE {
         return search_tx_page(keyword, 1, limit).await;
     }
@@ -658,7 +658,7 @@ pub async fn tx_batch_track_interval(song_ids: &[String]) -> Result<HashMap<Stri
 }
 
 /// Desktop 接口随机 guid：32 位大写 hex
-pub(crate) fn random_tx_guid() -> String {
+pub fn random_tx_guid() -> String {
     let mut state = chrono_like_random();
     let mut s = String::with_capacity(32);
     for _ in 0..32 {
@@ -687,6 +687,6 @@ fn random_tx_wid() -> String {
 }
 
 /// Desktop 接口随机 searchid 尾号：5 位数字
-pub(crate) fn random_5_digits() -> u64 {
+pub fn random_5_digits() -> u64 {
     chrono_like_random().wrapping_mul(7919).wrapping_add(104729) % 100000
 }

@@ -4,82 +4,82 @@
 // AAudio FFI 常量
 // =========================================================================
 
-pub(crate) const AAUDIO_OK: i32 = 0;
-pub(crate) const AAUDIO_ERROR_TIMEOUT: i32 = -13;
-pub(crate) const AAUDIO_SHARING_MODE_EXCLUSIVE: i32 = 0;
-pub(crate) const AAUDIO_SHARING_MODE_SHARED: i32 = 1;
-pub(crate) const AAUDIO_FORMAT_INVALID: i32 = 0;
-pub(crate) const AAUDIO_FORMAT_PCM_I16: i32 = 1;
-pub(crate) const AAUDIO_FORMAT_PCM_FLOAT: i32 = 2;
-pub(crate) const AAUDIO_FORMAT_PCM_I24_PACKED: i32 = 3;
-pub(crate) const AAUDIO_PERFORMANCE_MODE_LOW_LATENCY: i32 = 4;
-pub(crate) const AAUDIO_DIRECTION_OUTPUT: i32 = 0;
+pub const AAUDIO_OK: i32 = 0;
+pub const AAUDIO_ERROR_TIMEOUT: i32 = -13;
+pub const AAUDIO_SHARING_MODE_EXCLUSIVE: i32 = 0;
+pub const AAUDIO_SHARING_MODE_SHARED: i32 = 1;
+pub const AAUDIO_FORMAT_INVALID: i32 = 0;
+pub const AAUDIO_FORMAT_PCM_I16: i32 = 1;
+pub const AAUDIO_FORMAT_PCM_FLOAT: i32 = 2;
+pub const AAUDIO_FORMAT_PCM_I24_PACKED: i32 = 3;
+pub const AAUDIO_PERFORMANCE_MODE_LOW_LATENCY: i32 = 4;
+pub const AAUDIO_DIRECTION_OUTPUT: i32 = 0;
 
 // =========================================================================
 // AAudio FFI 类型
 // =========================================================================
 
-pub(crate) type AAudioStream = std::os::raw::c_void;
-pub(crate) type AAudioStreamBuilder = std::os::raw::c_void;
+pub type AAudioStream = std::os::raw::c_void;
+pub type AAudioStreamBuilder = std::os::raw::c_void;
 
 // 函数指针类型
-pub(crate) type FnCreateStreamBuilder = unsafe extern "C" fn(*mut *mut AAudioStreamBuilder) -> i32;
-pub(crate) type FnBuilderDelete = unsafe extern "C" fn(*mut AAudioStreamBuilder) -> i32;
-pub(crate) type FnBuilderSetDeviceId = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
-pub(crate) type FnBuilderSetSampleRate = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
-pub(crate) type FnBuilderSetChannelCount = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
-pub(crate) type FnBuilderSetFormat = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
-pub(crate) type FnBuilderSetSharingMode = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
-pub(crate) type FnBuilderSetPerformanceMode = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
-pub(crate) type FnBuilderSetBufferCapacity = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
-pub(crate) type FnBuilderSetDirection = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
-pub(crate) type FnBuilderOpenStream =
+pub type FnCreateStreamBuilder = unsafe extern "C" fn(*mut *mut AAudioStreamBuilder) -> i32;
+pub type FnBuilderDelete = unsafe extern "C" fn(*mut AAudioStreamBuilder) -> i32;
+pub type FnBuilderSetDeviceId = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
+pub type FnBuilderSetSampleRate = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
+pub type FnBuilderSetChannelCount = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
+pub type FnBuilderSetFormat = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
+pub type FnBuilderSetSharingMode = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
+pub type FnBuilderSetPerformanceMode = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
+pub type FnBuilderSetBufferCapacity = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
+pub type FnBuilderSetDirection = unsafe extern "C" fn(*mut AAudioStreamBuilder, i32);
+pub type FnBuilderOpenStream =
     unsafe extern "C" fn(*mut AAudioStreamBuilder, *mut *mut AAudioStream) -> i32;
-pub(crate) type FnStreamRequestStart = unsafe extern "C" fn(*mut AAudioStream) -> i32;
-pub(crate) type FnStreamRequestPause = unsafe extern "C" fn(*mut AAudioStream) -> i32;
-pub(crate) type FnStreamRequestStop = unsafe extern "C" fn(*mut AAudioStream) -> i32;
-pub(crate) type FnStreamClose = unsafe extern "C" fn(*mut AAudioStream) -> i32;
-pub(crate) type FnStreamWrite =
+pub type FnStreamRequestStart = unsafe extern "C" fn(*mut AAudioStream) -> i32;
+pub type FnStreamRequestPause = unsafe extern "C" fn(*mut AAudioStream) -> i32;
+pub type FnStreamRequestStop = unsafe extern "C" fn(*mut AAudioStream) -> i32;
+pub type FnStreamClose = unsafe extern "C" fn(*mut AAudioStream) -> i32;
+pub type FnStreamWrite =
     unsafe extern "C" fn(*mut AAudioStream, *const std::os::raw::c_void, i32, i64) -> i64;
-pub(crate) type FnStreamGetFramesRead = unsafe extern "C" fn(*mut AAudioStream) -> i64;
-pub(crate) type FnStreamGetFramesWritten = unsafe extern "C" fn(*mut AAudioStream) -> i64;
-pub(crate) type FnStreamGetXRunCount = unsafe extern "C" fn(*mut AAudioStream) -> i32;
-pub(crate) type FnStreamGetSampleRate = unsafe extern "C" fn(*mut AAudioStream) -> i32;
-pub(crate) type FnStreamGetChannelCount = unsafe extern "C" fn(*mut AAudioStream) -> i32;
-pub(crate) type FnStreamGetFormat = unsafe extern "C" fn(*mut AAudioStream) -> i32;
-pub(crate) type FnStreamGetBufferSize = unsafe extern "C" fn(*mut AAudioStream) -> i32;
-pub(crate) type FnStreamGetTimestamp =
+pub type FnStreamGetFramesRead = unsafe extern "C" fn(*mut AAudioStream) -> i64;
+pub type FnStreamGetFramesWritten = unsafe extern "C" fn(*mut AAudioStream) -> i64;
+pub type FnStreamGetXRunCount = unsafe extern "C" fn(*mut AAudioStream) -> i32;
+pub type FnStreamGetSampleRate = unsafe extern "C" fn(*mut AAudioStream) -> i32;
+pub type FnStreamGetChannelCount = unsafe extern "C" fn(*mut AAudioStream) -> i32;
+pub type FnStreamGetFormat = unsafe extern "C" fn(*mut AAudioStream) -> i32;
+pub type FnStreamGetBufferSize = unsafe extern "C" fn(*mut AAudioStream) -> i32;
+pub type FnStreamGetTimestamp =
     unsafe extern "C" fn(*mut AAudioStream, *mut std::os::raw::c_int, *mut i64, *mut i64) -> i32;
-pub(crate) type FnConvertResultToText = unsafe extern "C" fn(i32) -> *const std::os::raw::c_char;
+pub type FnConvertResultToText = unsafe extern "C" fn(i32) -> *const std::os::raw::c_char;
 
 /// 动态加载的 AAudio 函数表。
-pub(crate) struct AAudioLib {
-    pub(crate) _handle: *mut std::os::raw::c_void,
-    pub(crate) create_stream_builder: FnCreateStreamBuilder,
-    pub(crate) builder_delete: FnBuilderDelete,
-    pub(crate) builder_set_device_id: FnBuilderSetDeviceId,
-    pub(crate) builder_set_sample_rate: FnBuilderSetSampleRate,
-    pub(crate) builder_set_channel_count: FnBuilderSetChannelCount,
-    pub(crate) builder_set_format: FnBuilderSetFormat,
-    pub(crate) builder_set_sharing_mode: FnBuilderSetSharingMode,
-    pub(crate) builder_set_performance_mode: FnBuilderSetPerformanceMode,
-    pub(crate) builder_set_buffer_capacity: FnBuilderSetBufferCapacity,
-    pub(crate) builder_set_direction: FnBuilderSetDirection,
-    pub(crate) builder_open_stream: FnBuilderOpenStream,
-    pub(crate) stream_request_start: FnStreamRequestStart,
-    pub(crate) stream_request_pause: FnStreamRequestPause,
-    pub(crate) stream_request_stop: FnStreamRequestStop,
-    pub(crate) stream_close: FnStreamClose,
-    pub(crate) stream_write: FnStreamWrite,
-    pub(crate) stream_get_frames_read: FnStreamGetFramesRead,
-    pub(crate) stream_get_frames_written: FnStreamGetFramesWritten,
-    pub(crate) stream_get_xrun_count: FnStreamGetXRunCount,
-    pub(crate) stream_get_sample_rate: FnStreamGetSampleRate,
-    pub(crate) stream_get_channel_count: FnStreamGetChannelCount,
-    pub(crate) stream_get_format: FnStreamGetFormat,
-    pub(crate) stream_get_buffer_size: FnStreamGetBufferSize,
-    pub(crate) stream_get_timestamp: FnStreamGetTimestamp,
-    pub(crate) convert_result_to_text: FnConvertResultToText,
+pub struct AAudioLib {
+    pub _handle: *mut std::os::raw::c_void,
+    pub create_stream_builder: FnCreateStreamBuilder,
+    pub builder_delete: FnBuilderDelete,
+    pub builder_set_device_id: FnBuilderSetDeviceId,
+    pub builder_set_sample_rate: FnBuilderSetSampleRate,
+    pub builder_set_channel_count: FnBuilderSetChannelCount,
+    pub builder_set_format: FnBuilderSetFormat,
+    pub builder_set_sharing_mode: FnBuilderSetSharingMode,
+    pub builder_set_performance_mode: FnBuilderSetPerformanceMode,
+    pub builder_set_buffer_capacity: FnBuilderSetBufferCapacity,
+    pub builder_set_direction: FnBuilderSetDirection,
+    pub builder_open_stream: FnBuilderOpenStream,
+    pub stream_request_start: FnStreamRequestStart,
+    pub stream_request_pause: FnStreamRequestPause,
+    pub stream_request_stop: FnStreamRequestStop,
+    pub stream_close: FnStreamClose,
+    pub stream_write: FnStreamWrite,
+    pub stream_get_frames_read: FnStreamGetFramesRead,
+    pub stream_get_frames_written: FnStreamGetFramesWritten,
+    pub stream_get_xrun_count: FnStreamGetXRunCount,
+    pub stream_get_sample_rate: FnStreamGetSampleRate,
+    pub stream_get_channel_count: FnStreamGetChannelCount,
+    pub stream_get_format: FnStreamGetFormat,
+    pub stream_get_buffer_size: FnStreamGetBufferSize,
+    pub stream_get_timestamp: FnStreamGetTimestamp,
+    pub convert_result_to_text: FnConvertResultToText,
 }
 
 unsafe impl Send for AAudioLib {}
@@ -87,7 +87,7 @@ unsafe impl Send for AAudioLib {}
 impl AAudioLib {
     /// 动态加载 libaaudio.so。失败时带出具体原因（dlerror / 缺失符号名），
     /// 避免上游只见「无法加载」而无法定位。
-    pub(crate) fn load() -> Result<Self, String> {
+    pub fn load() -> Result<Self, String> {
         unsafe {
             let name = b"libaaudio.so\0".as_ptr();
             let handle = libc::dlopen(name as *const _, libc::RTLD_NOW);
@@ -186,14 +186,14 @@ impl AAudioLib {
     /// 用公开 API（getFramesWritten/getFramesRead/getBufferSizeInFrames，API 26+）
     /// 组合计算，替代非公开符号 AAudioStream_getAvailableFrames（部分厂商 ROM
     /// 不导出该符号，dlsym 失败会导致整个 libaaudio 加载被判失败）。
-    pub(crate) unsafe fn available_frames(&self, stream: *mut AAudioStream) -> i32 {
+    pub unsafe fn available_frames(&self, stream: *mut AAudioStream) -> i32 {
         let written = (self.stream_get_frames_written)(stream);
         let read = (self.stream_get_frames_read)(stream);
         let buf = (self.stream_get_buffer_size)(stream);
         buf - (written - read).clamp(0, buf as i64) as i32
     }
 
-    pub(crate) unsafe fn result_text(&self, result: i32) -> String {
+    pub unsafe fn result_text(&self, result: i32) -> String {
         let ptr = (self.convert_result_to_text)(result);
         if ptr.is_null() {
             return format!("AAudio error {}", result);
@@ -208,14 +208,14 @@ impl AAudioLib {
 // =========================================================================
 
 #[derive(Clone, Copy, PartialEq)]
-pub(crate) enum DeviceFormat {
+pub enum DeviceFormat {
     Float32,
     Int16,
     I24Packed,
 }
 
 impl DeviceFormat {
-    pub(crate) fn aaudio_format(self) -> i32 {
+    pub fn aaudio_format(self) -> i32 {
         match self {
             Self::Float32 => AAUDIO_FORMAT_PCM_FLOAT,
             Self::Int16 => AAUDIO_FORMAT_PCM_I16,
@@ -223,7 +223,7 @@ impl DeviceFormat {
         }
     }
 
-    pub(crate) fn bytes_per_sample(self) -> usize {
+    pub fn bytes_per_sample(self) -> usize {
         match self {
             Self::Float32 => 4,
             Self::Int16 => 2,
@@ -233,7 +233,7 @@ impl DeviceFormat {
 }
 
 /// f32 → 设备格式字节（小端 LE）。
-pub(crate) fn push_sample_bytes(buf: &mut Vec<u8>, sample: f32, fmt: DeviceFormat) {
+pub fn push_sample_bytes(buf: &mut Vec<u8>, sample: f32, fmt: DeviceFormat) {
     let clamped = sample.clamp(-1.0, 1.0);
     match fmt {
         DeviceFormat::Float32 => {

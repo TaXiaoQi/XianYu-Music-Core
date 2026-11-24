@@ -231,7 +231,7 @@ fn tx_parse(lrc: &str, tlrc: &str, rlrc: &str) -> LyricResult {
     info
 }
 
-pub(crate) async fn fetch_tx_lyric(
+pub async fn fetch_tx_lyric(
     song_info: &LyricSongInfo,
 ) -> Result<Option<LyricResult>, String> {
     let song_id_num = song_info

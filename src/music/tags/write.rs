@@ -22,11 +22,11 @@ pub struct EmbedMetadataRequest {
     pub cover_mime: Option<String>,
 }
 
-pub(crate) fn parse_u32_field(value: &Option<String>) -> Option<u32> {
+pub fn parse_u32_field(value: &Option<String>) -> Option<u32> {
     value.as_deref().and_then(|s| s.trim().parse::<u32>().ok())
 }
 
-pub(crate) fn guess_tag_type_from_path(path: &Path) -> TagType {
+pub fn guess_tag_type_from_path(path: &Path) -> TagType {
     match path
         .extension()
         .and_then(|ext| ext.to_str())

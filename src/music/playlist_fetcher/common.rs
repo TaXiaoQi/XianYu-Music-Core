@@ -37,7 +37,7 @@ pub struct PlaylistSong {
 impl PlaylistSong {
     /// 对齐前端 createSearchResult：platformId = id
     #[allow(clippy::too_many_arguments)]
-    pub(crate) fn new(
+    pub fn new(
         id: &str,
         title: &str,
         artist: &str,
@@ -75,7 +75,7 @@ pub struct PlaylistImportResult {
 
 impl PlaylistImportResult {
     /// TS 各平台通用的空结果：{ source, songs: [], total: 0, info: 空对象 }
-    pub(crate) fn empty(source: &str) -> Self {
+    pub fn empty(source: &str) -> Self {
         Self {
             source: source.to_string(),
             songs: Vec::new(),
@@ -88,12 +88,12 @@ impl PlaylistImportResult {
 // ==================== 格式化工具（对齐 musicFormat.ts / playlistImportBase.ts） ====================
 
 /// 对齐 TS decodeName：HTML 实体解码（复用歌词域实现）
-pub(crate) fn decode_name(s: &str) -> String {
+pub fn decode_name(s: &str) -> String {
     crate::music::lyric_fetcher::decode_html_entities(s)
 }
 
 /// 对齐 TS formatSingerName：数组取 name 键解码后以「、」拼接；非数组按字符串解码
-pub(crate) fn format_singer_name(singers: &serde_json::Value) -> String {
+pub fn format_singer_name(singers: &serde_json::Value) -> String {
     if let Some(arr) = singers.as_array() {
         let mut names: Vec<String> = Vec::new();
         for item in arr {
@@ -109,7 +109,7 @@ pub(crate) fn format_singer_name(singers: &serde_json::Value) -> String {
 }
 
 /// 对齐 TS formatPlayTime：秒 → m:ss（分钟不足两位补零），0/NaN → '--/--'
-pub(crate) fn format_play_time(seconds: f64) -> String {
+pub fn format_play_time(seconds: f64) -> String {
     if !seconds.is_finite() || seconds == 0.0 {
         return "--/--".to_string();
     }
@@ -123,7 +123,7 @@ pub(crate) fn format_play_time(seconds: f64) -> String {
 }
 
 /// 对齐 JS encodeURIComponent：保留 A-Za-z0-9-_.!~*'()，其余按 UTF-8 百分号编码（大写 hex）
-pub(crate) fn percent_encode_component(input: &str) -> String {
+pub fn percent_encode_component(input: &str) -> String {
     const HEX: &[u8; 16] = b"0123456789ABCDEF";
     let mut out = String::with_capacity(input.len());
     for &b in input.as_bytes() {
@@ -154,7 +154,7 @@ pub(crate) fn percent_encode_component(input: &str) -> String {
 
 const DEFAULT_UA: &str = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36";
 
-pub(crate) struct HttpJsonResponse {
+pub struct HttpJsonResponse {
     /// JSON 解析结果；解析失败时为字符串值（对齐 TS parsedBody 兜底）
     pub body: serde_json::Value,
     /// 原始响应文本（kg v9 HTML / 汽水 _ROUTER_DATA / 短链正则等场景使用）
@@ -164,7 +164,7 @@ pub(crate) struct HttpJsonResponse {
 }
 
 impl HttpJsonResponse {
-    pub(crate) fn header(&self, name: &str) -> Option<&str> {
+    pub fn header(&self, name: &str) -> Option<&str> {
         let lower = name.to_ascii_lowercase();
         self.headers
             .iter()
@@ -175,7 +175,7 @@ impl HttpJsonResponse {
 
 /// 对齐 TS httpFetch：默认 UA/Accept（调用方可覆盖）、form 百分号编码、
 /// status>=400 仅记日志、body 尽量 JSON 解析（失败保留字符串）
-pub(crate) async fn http_fetch_json(
+pub async fn http_fetch_json(
     url: &str,
     method: &str,
     headers: &[(&str, &str)],

@@ -2,17 +2,17 @@
 
 use encoding_rs::{BIG5, EUC_KR, GBK, SHIFT_JIS, UTF_16BE, UTF_16LE};
 
-pub(crate) struct HttpResponse {
-    pub(crate) status: u16,
-    pub(crate) body: String,
-    pub(crate) body_bytes: Vec<u8>,
+pub struct HttpResponse {
+    pub status: u16,
+    pub body: String,
+    pub body_bytes: Vec<u8>,
     /// 全部响应头（键转小写），对齐桌面端；歌单导入等场景需要读 location 等头
-    pub(crate) headers: Vec<(String, String)>,
+    pub headers: Vec<(String, String)>,
 }
 
 /// 从 Content-Type 头中提取 charset 参数，如 `text/plain; charset=gbk` → `gbk`。
 /// （对齐桌面端 lyric_fetcher：GBK/Big5/Shift_JIS 等本地编码歌词页不再乱码）
-pub(crate) fn extract_charset(content_type: Option<&str>) -> Option<String> {
+pub fn extract_charset(content_type: Option<&str>) -> Option<String> {
     let header = content_type?;
     let (_, params) = header.split_once(';')?;
     for param in params.split(';') {
@@ -31,7 +31,7 @@ pub(crate) fn extract_charset(content_type: Option<&str>) -> Option<String> {
 }
 
 /// 按 HTTP charset 解码响应体；无 charset 或未知 charset 时回退到内容探测。
-pub(crate) fn decode_http_body(body_bytes: &[u8], content_type: Option<&str>) -> String {
+pub fn decode_http_body(body_bytes: &[u8], content_type: Option<&str>) -> String {
     if let Some(charset) = extract_charset(content_type) {
         let decoded = match charset.as_str() {
             "utf-8" | "utf8" => None,
@@ -68,7 +68,7 @@ pub(crate) fn decode_http_body(body_bytes: &[u8], content_type: Option<&str>) ->
     crate::music::lyrics::decode_lyrics_file_bytes(body_bytes)
 }
 
-pub(crate) async fn http_fetch_text(
+pub async fn http_fetch_text(
     url: &str,
     method: &str,
     headers: &[(&str, &str)],
@@ -128,7 +128,7 @@ pub(crate) async fn http_fetch_text(
     })
 }
 
-pub(crate) async fn http_fetch_binary(
+pub async fn http_fetch_binary(
     url: &str,
     method: &str,
     headers: &[(&str, &str)],

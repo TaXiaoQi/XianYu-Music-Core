@@ -142,7 +142,7 @@ pub async fn lx_recommend_sheets_by_tag(
 
 /// 聚合各平台 tags 结果：pinned 顺序拼接；data 同名分组按 title 合并
 /// （tag 自带 source 区分平台，跨平台同名分组合并后仍可区分来源）。
-pub(crate) fn merge_tags_results(results: Vec<LxRecommendTagsResult>) -> LxRecommendTagsResult {
+pub fn merge_tags_results(results: Vec<LxRecommendTagsResult>) -> LxRecommendTagsResult {
     let mut out = LxRecommendTagsResult {
         pinned: Vec::new(),
         data: Vec::new(),
@@ -161,7 +161,7 @@ pub(crate) fn merge_tags_results(results: Vec<LxRecommendTagsResult>) -> LxRecom
 }
 
 /// Value → u64（计数/体积字段常见字符串数字形态）
-pub(crate) fn value_to_u64(v: &serde_json::Value) -> u64 {
+pub fn value_to_u64(v: &serde_json::Value) -> u64 {
     v.as_u64()
         .or_else(|| v.as_f64().map(|f| f as u64))
         .or_else(|| v.as_str().and_then(|s| s.trim().parse().ok()))

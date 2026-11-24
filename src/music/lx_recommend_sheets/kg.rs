@@ -22,7 +22,7 @@ fn kg_sheets_url(sort_id: &str, category_id: &str, page: u32) -> String {
     )
 }
 
-pub(crate) async fn kg_tags() -> Result<LxRecommendTagsResult, String> {
+pub async fn kg_tags() -> Result<LxRecommendTagsResult, String> {
     let data = tokio::time::timeout(
         Duration::from_secs(6),
         http_get_json(
@@ -84,7 +84,7 @@ pub(crate) async fn kg_tags() -> Result<LxRecommendTagsResult, String> {
     })
 }
 
-pub(crate) async fn kg_sheets_by_tag(
+pub async fn kg_sheets_by_tag(
     tag_id: &str,
     page: u32,
 ) -> Result<LxRecommendSheetsResult, String> {

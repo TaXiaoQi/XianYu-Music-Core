@@ -3,14 +3,14 @@
 use super::*;
 
 /// 是否为 DSD 容器文件（dsf/dff）。
-pub(crate) fn is_dsd_path(path: &str) -> bool {
+pub fn is_dsd_path(path: &str) -> bool {
     let lower = path.to_ascii_lowercase();
     lower.ends_with(".dsf") || lower.ends_with(".dff") || lower.ends_with(".dsd")
 }
 
 /// DSD 原生 DoP 直出：读 1-bit DSD 流按 DoP 1.0 打包成 24-bit 帧，
 /// 直接写入支持 DoP 的 DSD-DAC（AAudio 独占 I24），绕过音量/EQ/音效 DSP。
-pub(crate) fn run_dsd_passthrough(
+pub fn run_dsd_passthrough(
     request: ExclusivePlayRequest,
     lib: AAudioLib,
     cmd_rx: Receiver<ExclusiveCommand>,

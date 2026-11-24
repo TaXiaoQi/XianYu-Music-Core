@@ -507,7 +507,7 @@ fn collect_wy_song_ids(song_info: &LyricSongInfo) -> Vec<String> {
     ids
 }
 
-pub(crate) async fn fetch_wy_lyric_by_id(song_id: &str) -> Result<Option<LyricResult>, String> {
+pub async fn fetch_wy_lyric_by_id(song_id: &str) -> Result<Option<LyricResult>, String> {
     let song_id_value = song_id
         .parse::<i64>()
         .map(serde_json::Value::from)
@@ -582,7 +582,7 @@ pub(crate) async fn fetch_wy_lyric_by_id(song_id: &str) -> Result<Option<LyricRe
     }))
 }
 
-pub(crate) async fn fetch_wy_lyric(
+pub async fn fetch_wy_lyric(
     song_info: &LyricSongInfo,
 ) -> Result<Option<LyricResult>, String> {
     let ids = collect_wy_song_ids(song_info);

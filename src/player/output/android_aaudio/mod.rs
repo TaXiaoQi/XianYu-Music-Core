@@ -19,33 +19,33 @@
 // 以下 re-export 仅供 android 专属子模块（playback/stream/dsd/ffi）消费；
 // ohos 侧只用 decoder 与诊断基础设施，不门控会在 ohos target 下报
 // unused_imports（decoder 共享，qmc2/io/Arc/Duration 等两平台都用）。
-pub(crate) use crate::player::buffered_source::BlockProducer;
+pub use crate::player::buffered_source::BlockProducer;
 #[cfg(target_os = "android")]
-pub(crate) use crate::player::buffered_source::BufferedSource;
+pub use crate::player::buffered_source::BufferedSource;
 #[cfg(target_os = "android")]
-pub(crate) use crate::player::dsd_dop::{parse_dsd_info, DopStreamSource};
+pub use crate::player::dsd_dop::{parse_dsd_info, DopStreamSource};
 #[cfg(target_os = "android")]
-pub(crate) use crate::player::equalizer::{
+pub use crate::player::equalizer::{
     ClipGuardSource, Equalizer, EqualizerHandle, EqualizerSettings, UserVolumeSource,
 };
 #[cfg(target_os = "android")]
-pub(crate) use crate::player::loudness::VolumeNormalizer;
+pub use crate::player::loudness::VolumeNormalizer;
 #[cfg(target_os = "android")]
-pub(crate) use crate::player::output::ExclusivePlayRequest;
-pub(crate) use crate::player::qmc2::{
+pub use crate::player::output::ExclusivePlayRequest;
+pub use crate::player::qmc2::{
     extract_ekey_from_footer, looks_like_qmc_encrypted, QmcCrypto, QmcDecryptReader,
 };
 #[cfg(target_os = "android")]
-pub(crate) use crate::player::sound_effect::{SoundEffectBlockProcessor, SoundEffectSettings};
+pub use crate::player::sound_effect::{SoundEffectBlockProcessor, SoundEffectSettings};
 #[cfg(target_os = "android")]
-pub(crate) use crate::player::types::global_visualizer;
-pub(crate) use std::io::{Read, Seek, SeekFrom};
-pub(crate) use std::sync::atomic::{AtomicBool, Ordering};
+pub use crate::player::types::global_visualizer;
+pub use std::io::{Read, Seek, SeekFrom};
+pub use std::sync::atomic::{AtomicBool, Ordering};
 #[cfg(target_os = "android")]
-pub(crate) use std::sync::atomic::{AtomicU32, AtomicU64};
+pub use std::sync::atomic::{AtomicU32, AtomicU64};
 #[cfg(target_os = "android")]
-pub(crate) use std::sync::mpsc::{self, Receiver, Sender, SyncSender};
-pub(crate) use std::sync::{Arc, Mutex, OnceLock};
+pub use std::sync::mpsc::{self, Receiver, Sender, SyncSender};
+pub use std::sync::{Arc, Mutex, OnceLock};
 /// 记录工作线程退出原因到共享 slot（诊断用：Flutter 侧在 active=false 时读取展示）。
 /// 模块级定义（macro_rules! 仅对定义点之后的代码可见）。
 #[cfg(target_os = "android")]
@@ -57,8 +57,8 @@ macro_rules! set_exit_reason {
     };
 }
 #[cfg(target_os = "android")]
-pub(crate) use std::thread;
-pub(crate) use std::time::Duration;
+pub use std::thread;
+pub use std::time::Duration;
 
 mod decoder;
 #[cfg(target_os = "android")]
@@ -70,25 +70,25 @@ mod playback;
 #[cfg(target_os = "android")]
 mod stream;
 
-pub(crate) use decoder::*;
+pub use decoder::*;
 #[cfg(target_os = "android")]
-pub(crate) use dsd::*;
+pub use dsd::*;
 #[cfg(target_os = "android")]
-pub(crate) use ffi::*;
+pub use ffi::*;
 #[cfg(target_os = "android")]
 pub use playback::*;
 #[cfg(target_os = "android")]
-pub(crate) use stream::*;
+pub use stream::*;
 
 /// 管线内诊断事件环（seek/panic 等，容量 16）：音频线程 EOF 退出时并入
 /// last_error 上报 Flutter——管线线程的 eprintln 在 Android 上不可见，
 /// 死亡消息是唯一能带出运行时现场的信道路径。
-pub(crate) static PIPELINE_DIAG: OnceLock<Mutex<Vec<String>>> = OnceLock::new();
+pub static PIPELINE_DIAG: OnceLock<Mutex<Vec<String>>> = OnceLock::new();
 
 /// 从 URL 提取小写扩展名（去掉 query/fragment），供流式源格式探测。
 /// 无扩展名返回 None（此时 symphonia 依赖嗅探）。
 /// （原在 dsd.rs，decoder 在 ohos 下也用它，上移到共享层。）
-pub(crate) fn url_path_extension(url: &str) -> Option<String> {
+pub fn url_path_extension(url: &str) -> Option<String> {
     let path = url.split(['?', '#']).next()?;
     let file = path.rsplit('/').next()?;
     let ext = file.rsplit('.').next()?;
@@ -103,7 +103,7 @@ pub(crate) fn url_path_extension(url: &str) -> Option<String> {
     Some(lower)
 }
 
-pub(crate) fn record_pipeline_diag(msg: &str) {
+pub fn record_pipeline_diag(msg: &str) {
     let slot = PIPELINE_DIAG.get_or_init(|| Mutex::new(Vec::new()));
     if let Ok(mut guard) = slot.lock() {
         guard.push(msg.to_string());

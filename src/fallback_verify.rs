@@ -29,7 +29,8 @@ const FALLBACK_VERIFY_KEYS: &[(&str, &str)] = &[
 /// `valid`: 签名对某内嵌公钥有效（可采纳该配置）。
 /// `key_unknown`: 签名有效但响应 keyId 不在已知槽位（疑似新公钥上线或
 /// 密钥降级攻击；采纳的同时应上报事件）。
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FallbackVerifyResult {
     pub valid: bool,
     pub key_unknown: bool,
@@ -38,13 +39,13 @@ pub struct FallbackVerifyResult {
 /// 配置签名消息构造（服务端 client/server 两端必须逐字一致）：
 /// 对配置 JSON 原始字符串（未解析、未重排序）直接签名，避免 JSON
 /// 规范化差异；前缀防止签名在其他消息类型间复用。
-pub(crate) fn fallback_config_message(config_json: &str) -> Vec<u8> {
+pub fn fallback_config_message(config_json: &str) -> Vec<u8> {
     format!("xianyu-fallback-config-v1\x00{config_json}").into_bytes()
 }
 
 /// 内测资格响应签名消息（与服务端 check_beta_access 逐字一致）：
 /// `xianyu-beta-access-v1\x00{device_id}\x00{allowed01}\x00{pending01}\x00{exp}`
-pub(crate) fn beta_access_message(
+pub fn beta_access_message(
     device_id: &str,
     allowed: bool,
     pending: bool,

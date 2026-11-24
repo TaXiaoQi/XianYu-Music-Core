@@ -5,7 +5,7 @@ use super::*;
 // =====================================================
 
 /// 判断是否为无效的专辑/歌手名（用于统计时排除）
-pub(crate) fn is_invalid_name(name: &str) -> bool {
+pub fn is_invalid_name(name: &str) -> bool {
     let normalized = name.trim().to_lowercase();
     normalized.is_empty()
         || normalized == "未知"
@@ -17,12 +17,12 @@ pub(crate) fn is_invalid_name(name: &str) -> bool {
 }
 
 /// 判断是否为 Hi-Res (24bit + >=48kHz)
-pub(crate) fn is_hires(bit_depth: Option<i64>, sample_rate: i64) -> bool {
+pub fn is_hires(bit_depth: Option<i64>, sample_rate: i64) -> bool {
     bit_depth.unwrap_or(0) >= 24 && sample_rate >= 48000
 }
 
-pub(crate) const SUPPORTED_STATS_VERSION: i64 = 1;
-pub(crate) const RECENT_PLAY_LIMIT: i64 = 300;
+pub const SUPPORTED_STATS_VERSION: i64 = 1;
+pub const RECENT_PLAY_LIMIT: i64 = 300;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PortableSongIdentity {
@@ -183,46 +183,46 @@ pub struct RecordPlayPayload {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct LibraryMatchCandidate {
-    pub(crate) path: String,
-    pub(crate) identity: PortableSongIdentity,
+pub struct LibraryMatchCandidate {
+    pub path: String,
+    pub identity: PortableSongIdentity,
 }
 
 #[derive(Default)]
-pub(crate) struct LibraryMatchIndex {
-    pub(crate) strict: HashMap<String, Vec<LibraryMatchCandidate>>,
-    pub(crate) weak_artist: HashMap<String, Vec<LibraryMatchCandidate>>,
-    pub(crate) weak_title: HashMap<String, Vec<LibraryMatchCandidate>>,
+pub struct LibraryMatchIndex {
+    pub strict: HashMap<String, Vec<LibraryMatchCandidate>>,
+    pub weak_artist: HashMap<String, Vec<LibraryMatchCandidate>>,
+    pub weak_title: HashMap<String, Vec<LibraryMatchCandidate>>,
 }
 
-pub(crate) fn now_unix_seconds() -> i64 {
+pub fn now_unix_seconds() -> i64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_secs() as i64
 }
 
-pub(crate) fn now_unix_millis() -> i128 {
+pub fn now_unix_millis() -> i128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis() as i128
 }
 
-pub(crate) fn now_iso_timestamp() -> Result<String, String> {
+pub fn now_iso_timestamp() -> Result<String, String> {
     OffsetDateTime::now_utc()
         .format(&Rfc3339)
         .map_err(|e| e.to_string())
 }
 
-pub(crate) fn unix_seconds_to_iso(timestamp: i64) -> Result<String, String> {
+pub fn unix_seconds_to_iso(timestamp: i64) -> Result<String, String> {
     OffsetDateTime::from_unix_timestamp(timestamp)
         .map_err(|e| e.to_string())?
         .format(&Rfc3339)
         .map_err(|e| e.to_string())
 }
 
-pub(crate) fn normalize_identity_text(value: &str) -> String {
+pub fn normalize_identity_text(value: &str) -> String {
     value
         .trim()
         .to_lowercase()
@@ -231,7 +231,7 @@ pub(crate) fn normalize_identity_text(value: &str) -> String {
         .join(" ")
 }
 
-pub(crate) fn parse_track_number_value(value: Option<&str>) -> Option<i64> {
+pub fn parse_track_number_value(value: Option<&str>) -> Option<i64> {
     value
         .unwrap_or_default()
         .split(['/', '\\'])
@@ -246,7 +246,7 @@ pub(crate) fn parse_track_number_value(value: Option<&str>) -> Option<i64> {
         })
 }
 
-pub(crate) fn strict_identity_key(identity: &PortableSongIdentity) -> String {
+pub fn strict_identity_key(identity: &PortableSongIdentity) -> String {
     format!(
         "{}|{}|{}|{}",
         normalize_identity_text(&identity.title),
@@ -256,7 +256,7 @@ pub(crate) fn strict_identity_key(identity: &PortableSongIdentity) -> String {
     )
 }
 
-pub(crate) fn weak_artist_identity_key(identity: &PortableSongIdentity) -> String {
+pub fn weak_artist_identity_key(identity: &PortableSongIdentity) -> String {
     format!(
         "{}|{}|{}",
         normalize_identity_text(&identity.title),
@@ -265,7 +265,7 @@ pub(crate) fn weak_artist_identity_key(identity: &PortableSongIdentity) -> Strin
     )
 }
 
-pub(crate) fn weak_title_identity_key(identity: &PortableSongIdentity) -> String {
+pub fn weak_title_identity_key(identity: &PortableSongIdentity) -> String {
     format!(
         "{}|{}",
         normalize_identity_text(&identity.title),
@@ -273,7 +273,7 @@ pub(crate) fn weak_title_identity_key(identity: &PortableSongIdentity) -> String
     )
 }
 
-pub(crate) fn recent_play_dedupe_key(entry: &PortableRecentPlay) -> String {
+pub fn recent_play_dedupe_key(entry: &PortableRecentPlay) -> String {
     format!(
         "{}|{}|{}|{}",
         entry.played_at,
@@ -283,7 +283,7 @@ pub(crate) fn recent_play_dedupe_key(entry: &PortableRecentPlay) -> String {
     )
 }
 
-pub(crate) fn resolve_song_identity(
+pub fn resolve_song_identity(
     title: &str,
     artist: &str,
     album: &str,
@@ -309,7 +309,7 @@ pub(crate) fn resolve_song_identity(
     }
 }
 
-pub(crate) fn derive_play_flags(listened_ms: i64, duration_ms: i64) -> (bool, bool) {
+pub fn derive_play_flags(listened_ms: i64, duration_ms: i64) -> (bool, bool) {
     if listened_ms <= 0 || duration_ms <= 0 {
         return (false, false);
     }
@@ -321,7 +321,7 @@ pub(crate) fn derive_play_flags(listened_ms: i64, duration_ms: i64) -> (bool, bo
     (is_full_play, is_skip)
 }
 
-pub(crate) fn sqlite_local_date(
+pub fn sqlite_local_date(
     conn: &rusqlite::Connection,
     played_at: i64,
 ) -> Result<String, String> {
@@ -333,7 +333,7 @@ pub(crate) fn sqlite_local_date(
     .map_err(|e| e.to_string())
 }
 
-pub(crate) fn sqlite_local_hour(
+pub fn sqlite_local_hour(
     conn: &rusqlite::Connection,
     played_at: i64,
 ) -> Result<i64, String> {
@@ -345,7 +345,7 @@ pub(crate) fn sqlite_local_hour(
     .map_err(|e| e.to_string())
 }
 
-pub(crate) fn get_statistics_meta(
+pub fn get_statistics_meta(
     conn: &rusqlite::Connection,
     key: &str,
 ) -> Result<Option<String>, String> {
@@ -358,7 +358,7 @@ pub(crate) fn get_statistics_meta(
     .map_err(|e| e.to_string())
 }
 
-pub(crate) fn set_statistics_meta(
+pub fn set_statistics_meta(
     conn: &rusqlite::Connection,
     key: &str,
     value: &str,
@@ -373,7 +373,7 @@ pub(crate) fn set_statistics_meta(
     Ok(())
 }
 
-pub(crate) fn clear_aggregate_statistics(conn: &rusqlite::Connection) -> Result<(), String> {
+pub fn clear_aggregate_statistics(conn: &rusqlite::Connection) -> Result<(), String> {
     conn.execute("DELETE FROM global_stats", [])
         .map_err(|e| e.to_string())?;
     conn.execute("DELETE FROM song_stats", [])
@@ -391,7 +391,7 @@ pub(crate) fn clear_aggregate_statistics(conn: &rusqlite::Connection) -> Result<
     Ok(())
 }
 
-pub(crate) fn merge_global_stats(
+pub fn merge_global_stats(
     conn: &rusqlite::Connection,
     global: &PortableGlobalStats,
 ) -> Result<(), String> {
@@ -424,7 +424,7 @@ pub(crate) fn merge_global_stats(
     Ok(())
 }
 
-pub(crate) fn upsert_song_stats(
+pub fn upsert_song_stats(
     conn: &rusqlite::Connection,
     identity: &PortableSongIdentity,
     stats: &PortableSongStats,
@@ -476,7 +476,7 @@ pub(crate) fn upsert_song_stats(
     Ok(())
 }
 
-pub(crate) fn upsert_daily_stats(
+pub fn upsert_daily_stats(
     conn: &rusqlite::Connection,
     daily: &PortableDailyStats,
 ) -> Result<(), String> {
@@ -500,7 +500,7 @@ pub(crate) fn upsert_daily_stats(
     Ok(())
 }
 
-pub(crate) fn upsert_hourly_stats(
+pub fn upsert_hourly_stats(
     conn: &rusqlite::Connection,
     hourly: &PortableHourlyStats,
 ) -> Result<(), String> {
@@ -516,7 +516,7 @@ pub(crate) fn upsert_hourly_stats(
     Ok(())
 }
 
-pub(crate) fn prune_recent_plays(conn: &rusqlite::Connection) -> Result<(), String> {
+pub fn prune_recent_plays(conn: &rusqlite::Connection) -> Result<(), String> {
     conn.execute(
         "DELETE FROM recent_plays
          WHERE id NOT IN (
@@ -528,7 +528,7 @@ pub(crate) fn prune_recent_plays(conn: &rusqlite::Connection) -> Result<(), Stri
     Ok(())
 }
 
-pub(crate) fn insert_recent_play(
+pub fn insert_recent_play(
     conn: &rusqlite::Connection,
     entry: &PortableRecentPlay,
 ) -> Result<bool, String> {
@@ -554,7 +554,7 @@ pub(crate) fn insert_recent_play(
     Ok(affected > 0)
 }
 
-pub(crate) fn record_unique_daily_entries(
+pub fn record_unique_daily_entries(
     conn: &rusqlite::Connection,
     date: &str,
     identity: &PortableSongIdentity,
@@ -582,7 +582,7 @@ pub(crate) fn record_unique_daily_entries(
     Ok((song_added, artist_added))
 }
 
-pub(crate) fn record_aggregate_play(
+pub fn record_aggregate_play(
     conn: &rusqlite::Connection,
     identity: &PortableSongIdentity,
     played_at: i64,

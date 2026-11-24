@@ -8,19 +8,19 @@
 //! 拆分说明：重命名见 rename，文件名构建见 download_filename，下载编排见 download，
 //! QMC 解密见 qmc_decrypt，其余 IO 见 misc_io。
 
-pub(crate) use crate::music::tags::{
+pub use crate::music::tags::{
     extract_text_metadata, read_tagged_file_from_path, read_tagged_file_from_path_for_scan,
     write_metadata_to_file, EmbedMetadataRequest,
 };
-pub(crate) use crate::music::utils::is_supported_library_extension;
-pub(crate) use crate::security::path_validator;
-pub(crate) use lofty::prelude::*;
-pub(crate) use regex::Regex;
-pub(crate) use serde::{Deserialize, Serialize};
-pub(crate) use std::fs;
-pub(crate) use std::path::{Path, PathBuf};
-pub(crate) use std::sync::{Arc, Mutex, OnceLock};
-pub(crate) use walkdir::WalkDir;
+pub use crate::music::utils::is_supported_library_extension;
+pub use crate::security::path_validator;
+pub use lofty::prelude::*;
+pub use regex::Regex;
+pub use serde::{Deserialize, Serialize};
+pub use std::fs;
+pub use std::path::{Path, PathBuf};
+pub use std::sync::{Arc, Mutex, OnceLock};
+pub use walkdir::WalkDir;
 
 mod download;
 mod download_filename;

@@ -3,7 +3,7 @@
 use super::*;
 use std::collections::HashMap;
 
-pub(crate) async fn search_wy(keyword: &str, limit: u32) -> Result<Vec<LxSearchItem>, String> {
+pub async fn search_wy(keyword: &str, limit: u32) -> Result<Vec<LxSearchItem>, String> {
     if limit <= super::SEARCH_PAGE_SIZE {
         return search_wy_page(keyword, 1, limit).await;
     }

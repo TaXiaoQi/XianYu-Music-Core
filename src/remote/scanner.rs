@@ -201,7 +201,7 @@ fn song_for_remote_index(source: &RemoteSourceCredentials, file: &RemoteFileEntr
     song_from_remote_file(source, file)
 }
 
-pub(crate) fn song_from_cached_remote_file(
+pub fn song_from_cached_remote_file(
     // song_from_cached_remote_file
     source: &RemoteSourceCredentials,
     file: &RemoteFileEntry,
@@ -535,7 +535,7 @@ async fn fetch_dir_cover(
     None
 }
 
-pub(crate) async fn sync_source(
+pub async fn sync_source(
     // 实现
     cache_root: &Path,
     db_path: &str,

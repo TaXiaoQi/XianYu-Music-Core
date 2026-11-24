@@ -6,7 +6,7 @@ use crate::music::lx_toplist::wy::WY_HEADERS;
 
 const PAGE_SIZE: u64 = 20;
 
-pub(crate) async fn wy_tags() -> Result<LxRecommendTagsResult, String> {
+pub async fn wy_tags() -> Result<LxRecommendTagsResult, String> {
     let data = tokio::time::timeout(
         Duration::from_secs(6),
         http_get_json("https://music.163.com/api/playlist/catalogue", WY_HEADERS),
@@ -62,7 +62,7 @@ pub(crate) async fn wy_tags() -> Result<LxRecommendTagsResult, String> {
     })
 }
 
-pub(crate) async fn wy_sheets_by_tag(
+pub async fn wy_sheets_by_tag(
     tag_id: &str,
     page: u32,
 ) -> Result<LxRecommendSheetsResult, String> {

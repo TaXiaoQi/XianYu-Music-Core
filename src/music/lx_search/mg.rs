@@ -3,7 +3,7 @@
 use super::*;
 use std::collections::HashMap;
 
-pub(crate) fn mg_filter_data(raw_data: &serde_json::Value) -> Vec<LxSearchItem> {
+pub fn mg_filter_data(raw_data: &serde_json::Value) -> Vec<LxSearchItem> {
     let mut list = Vec::new();
     let mut ids = std::collections::HashSet::new();
 
@@ -164,7 +164,7 @@ pub(crate) fn mg_filter_data(raw_data: &serde_json::Value) -> Vec<LxSearchItem> 
     list
 }
 
-pub(crate) async fn search_mg(keyword: &str, limit: u32) -> Result<Vec<LxSearchItem>, String> {
+pub async fn search_mg(keyword: &str, limit: u32) -> Result<Vec<LxSearchItem>, String> {
     if limit <= super::SEARCH_PAGE_SIZE {
         return search_mg_page(keyword, 1, limit).await;
     }

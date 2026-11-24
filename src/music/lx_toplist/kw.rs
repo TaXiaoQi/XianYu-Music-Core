@@ -14,7 +14,7 @@ fn kw_bang_url(id: &str, page: u32, rn: u32) -> String {
     )
 }
 
-pub(crate) async fn kw_boards() -> Vec<LxToplistBoard> {
+pub async fn kw_boards() -> Vec<LxToplistBoard> {
     // 单请求 6s 超时：列表接口偶发不响应时整体置空
     let data =
         match tokio::time::timeout(Duration::from_secs(6), http_get_json(KW_BANG_LIST_URL, &[]))
@@ -89,7 +89,7 @@ async fn kw_song_cover(songmid: String) -> Option<String> {
     text.starts_with("http").then(|| text.to_string())
 }
 
-pub(crate) async fn kw_board_songs(
+pub async fn kw_board_songs(
     board_id: &str,
     page: u32,
     limit: u32,

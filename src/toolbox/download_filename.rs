@@ -35,7 +35,7 @@ pub fn resolve_download_path(
 }
 
 /// 下载文件名清洗：非法字符替换为空格、折叠连续空白、限长 180 字符。
-pub(crate) fn sanitize_download_filename(name: &str) -> String {
+pub fn sanitize_download_filename(name: &str) -> String {
     let sanitized: String = name
         .chars()
         .map(|c| {
@@ -55,7 +55,7 @@ pub(crate) fn sanitize_download_filename(name: &str) -> String {
 }
 
 /// 从 URL 路径推断音频文件扩展名（含点）；无法识别返回空串。
-pub(crate) fn ext_from_url(url: &str) -> String {
+pub fn ext_from_url(url: &str) -> String {
     let path = match reqwest::Url::parse(url) {
         Ok(u) => u.path().to_string(),
         Err(_) => return String::new(),
@@ -71,11 +71,11 @@ pub(crate) fn ext_from_url(url: &str) -> String {
     }
 }
 
-pub(crate) fn is_lossless_quality(quality: &str) -> bool {
+pub fn is_lossless_quality(quality: &str) -> bool {
     matches!(quality, "flac" | "flac24bit" | "hires" | "vinyl" | "master")
 }
 
-pub(crate) fn ext_from_quality(quality: &str) -> String {
+pub fn ext_from_quality(quality: &str) -> String {
     if is_lossless_quality(quality) {
         ".flac".to_string()
     } else {
@@ -83,7 +83,7 @@ pub(crate) fn ext_from_quality(quality: &str) -> String {
     }
 }
 
-pub(crate) fn build_filename_base(title: &str, artist: &str, album: &str, style: &str) -> String {
+pub fn build_filename_base(title: &str, artist: &str, album: &str, style: &str) -> String {
     let title = if title.is_empty() {
         "未知歌曲"
     } else {
@@ -107,7 +107,7 @@ pub(crate) fn build_filename_base(title: &str, artist: &str, album: &str, style:
     }
 }
 
-pub(crate) fn build_download_filename(
+pub fn build_download_filename(
     title: &str,
     artist: &str,
     album: &str,

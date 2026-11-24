@@ -80,7 +80,7 @@ async fn tx_probe_board(id: u32) -> Option<LxToplistBoard> {
     })
 }
 
-pub(crate) async fn tx_boards() -> Vec<LxToplistBoard> {
+pub async fn tx_boards() -> Vec<LxToplistBoard> {
     let handles: Vec<_> = TX_BOARD_IDS
         .iter()
         .map(|id| tokio::spawn(tx_probe_board(*id)))
@@ -94,7 +94,7 @@ pub(crate) async fn tx_boards() -> Vec<LxToplistBoard> {
     out
 }
 
-pub(crate) async fn tx_board_songs(
+pub async fn tx_board_songs(
     board_id: &str,
     page: u32,
     limit: u32,

@@ -1,6 +1,6 @@
 use super::*;
 
-pub(crate) fn resolve_semantic_confidence(
+pub fn resolve_semantic_confidence(
     lines: &[Option<&LyricTrackLine>],
 ) -> ClassificationConfidence {
     if lines.iter().any(|line| {
@@ -17,7 +17,7 @@ pub(crate) fn resolve_semantic_confidence(
     }
 }
 
-pub(crate) fn should_attach_aligned_pair(
+pub fn should_attach_aligned_pair(
     main_track: &LyricTrack,
     aux_track: &LyricTrack,
     alignment: &TrackAlignment,
@@ -44,7 +44,7 @@ pub(crate) fn should_attach_aligned_pair(
         && pair.drift_ms.unsigned_abs() as u32 <= ALIGNMENT_HIGH_WINDOW_MS
 }
 
-pub(crate) fn build_aligned_roman_words(
+pub fn build_aligned_roman_words(
     main_line: &LyricTrackLine,
     roman_line: Option<&LyricTrackLine>,
 ) -> Option<Vec<ParsedWord>> {
@@ -96,7 +96,7 @@ pub(crate) fn build_aligned_roman_words(
     }
 }
 
-pub(crate) fn push_secondary_text(secondary_texts: &mut Option<Vec<String>>, text: String) {
+pub fn push_secondary_text(secondary_texts: &mut Option<Vec<String>>, text: String) {
     if text.is_empty() {
         return;
     }
@@ -106,7 +106,7 @@ pub(crate) fn push_secondary_text(secondary_texts: &mut Option<Vec<String>>, tex
     }
 }
 
-pub(crate) fn should_use_line_as_romaji(
+pub fn should_use_line_as_romaji(
     main_line: &LyricTrackLine,
     candidate_track: &LyricTrack,
     candidate_line: &LyricTrackLine,
@@ -138,14 +138,14 @@ pub(crate) fn should_use_line_as_romaji(
             && romanization + 0.08 >= englishness)
 }
 
-pub(crate) fn is_auxiliary_role_repair_track(track: &LyricTrack) -> bool {
+pub fn is_auxiliary_role_repair_track(track: &LyricTrack) -> bool {
     matches!(
         track.role,
         LyricTrackRole::Unknown | LyricTrackRole::Secondary | LyricTrackRole::AlternateMain
     )
 }
 
-pub(crate) fn should_use_line_as_translation(
+pub fn should_use_line_as_translation(
     main_line: &LyricTrackLine,
     candidate_track: &LyricTrack,
     candidate_line: &LyricTrackLine,
@@ -176,7 +176,7 @@ pub(crate) fn should_use_line_as_translation(
         && is_japanese_like(&main_line.script_profile)
 }
 
-pub(crate) fn should_promote_japanese_auxiliary_as_main(
+pub fn should_promote_japanese_auxiliary_as_main(
     current_main_line: &LyricTrackLine,
     candidate_line: &LyricTrackLine,
 ) -> bool {
@@ -186,7 +186,7 @@ pub(crate) fn should_promote_japanese_auxiliary_as_main(
         && current_main_line.cluster_index == candidate_line.cluster_index
 }
 
-pub(crate) fn merge_auxiliary_line_into_semantic(
+pub fn merge_auxiliary_line_into_semantic(
     semantic_line: &mut SemanticLine,
     main_line: &LyricTrackLine,
     candidate_track: &LyricTrack,
@@ -217,7 +217,7 @@ pub(crate) fn merge_auxiliary_line_into_semantic(
     );
 }
 
-pub(crate) fn score_cluster_main_candidate(
+pub fn score_cluster_main_candidate(
     document: &LyricDocument,
     main_track: &LyricTrack,
     candidate_track: &LyricTrack,
@@ -344,7 +344,7 @@ pub(crate) fn score_cluster_main_candidate(
     score
 }
 
-pub(crate) fn build_semantic_line_from_orphan_group(
+pub fn build_semantic_line_from_orphan_group(
     document: &LyricDocument,
     main_track: &LyricTrack,
     group: &[(usize, usize, LyricTrackLine)],
@@ -428,7 +428,7 @@ pub(crate) fn build_semantic_line_from_orphan_group(
     semantic_line
 }
 
-pub(crate) fn resolve_display_line_roles<'a>(
+pub fn resolve_display_line_roles<'a>(
     main_line: &'a LyricTrackLine,
     translation_line: Option<&'a LyricTrackLine>,
     roman_line: Option<&'a LyricTrackLine>,
@@ -466,7 +466,7 @@ pub(crate) fn resolve_display_line_roles<'a>(
     (main_line, translation_line, roman_line)
 }
 
-pub(crate) fn normalize_semantic_line_display_roles(mut line: SemanticLine) -> SemanticLine {
+pub fn normalize_semantic_line_display_roles(mut line: SemanticLine) -> SemanticLine {
     let main_is_latin =
         get_line_script_profile(&line.main_text).dominant_script == DominantScript::Latin;
     let translation_is_missing = line
@@ -491,28 +491,28 @@ pub(crate) fn normalize_semantic_line_display_roles(mut line: SemanticLine) -> S
     line
 }
 
-pub(crate) fn is_han_only_line(line: &LyricTrackLine) -> bool {
+pub fn is_han_only_line(line: &LyricTrackLine) -> bool {
     line.script_profile.han_count > 0
         && line.script_profile.latin_count == 0
         && line.script_profile.kana_count == 0
         && line.script_profile.hangul_count == 0
 }
 
-pub(crate) fn is_han_latin_mixed_line(line: &LyricTrackLine) -> bool {
+pub fn is_han_latin_mixed_line(line: &LyricTrackLine) -> bool {
     line.script_profile.han_count > 0
         && line.script_profile.latin_count > 0
         && line.script_profile.kana_count == 0
         && line.script_profile.hangul_count == 0
 }
 
-pub(crate) fn is_latin_only_line(line: &LyricTrackLine) -> bool {
+pub fn is_latin_only_line(line: &LyricTrackLine) -> bool {
     line.script_profile.latin_count > 0
         && line.script_profile.han_count == 0
         && line.script_profile.kana_count == 0
         && line.script_profile.hangul_count == 0
 }
 
-pub(crate) fn build_hard_role_semantic_line(
+pub fn build_hard_role_semantic_line(
     main_line: &LyricTrackLine,
     translation_line: Option<&LyricTrackLine>,
     roman_line: Option<&LyricTrackLine>,
@@ -534,7 +534,7 @@ pub(crate) fn build_hard_role_semantic_line(
     }
 }
 
-pub(crate) fn build_hard_role_semantic_line_from_cluster(
+pub fn build_hard_role_semantic_line_from_cluster(
     group: &[(usize, usize, LyricTrackLine)],
 ) -> Option<SemanticLine> {
     let mut lines = group
@@ -596,7 +596,7 @@ pub(crate) fn build_hard_role_semantic_line_from_cluster(
     }
 }
 
-pub(crate) fn try_build_hard_role_semantic_lines(
+pub fn try_build_hard_role_semantic_lines(
     document: &LyricDocument,
 ) -> Option<Vec<SemanticLine>> {
     let mut grouped_lines = BTreeMap::<usize, Vec<(usize, usize, LyricTrackLine)>>::new();
@@ -1038,7 +1038,7 @@ pub fn lyric_document_to_semantic_lines(document: &LyricDocument) -> Vec<Semanti
         })
 }
 
-pub(crate) fn build_romaji_text(line: &SemanticLine) -> String {
+pub fn build_romaji_text(line: &SemanticLine) -> String {
     if let Some(text) = line.roman_text.as_ref() {
         return text.clone();
     }

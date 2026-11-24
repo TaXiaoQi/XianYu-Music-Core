@@ -8,16 +8,16 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime};
 
 // 移动端降档：手机存储有限，远程整文件缓存 2GB 足够（LRU 自动淘汰）
-pub(crate) const MAX_REMOTE_CACHE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+pub const MAX_REMOTE_CACHE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
 const REMOTE_DOWNLOAD_ATTEMPTS: usize = 3;
 
-pub(crate) fn is_remote_uri(path: &str) -> bool {
+pub fn is_remote_uri(path: &str) -> bool {
     path.starts_with("remote://")
 }
 
 #[derive(Clone, Debug, Default, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct RemoteStreamSource {
+pub struct RemoteStreamSource {
     pub remote_uri: String,
     pub url: String,
     pub username: Option<String>,
@@ -32,7 +32,7 @@ pub(crate) struct RemoteStreamSource {
 
 #[derive(Clone, Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase", tag = "kind")]
-pub(crate) enum RemotePlaybackSource {
+pub enum RemotePlaybackSource {
     Cached { path: String },
     Stream(RemoteStreamSource),
 }
@@ -84,7 +84,7 @@ fn cleanup_cache(root: &Path) {
     }
 }
 
-pub(crate) fn cache_usage(cache_root: &Path) -> Result<RemoteCacheUsage, String> {
+pub fn cache_usage(cache_root: &Path) -> Result<RemoteCacheUsage, String> {
     let mut bytes = 0u64;
     let mut files = 0usize;
     for entry in fs::read_dir(cache_root).map_err(|error| error.to_string())? {
@@ -102,7 +102,7 @@ pub(crate) fn cache_usage(cache_root: &Path) -> Result<RemoteCacheUsage, String>
     })
 }
 
-pub(crate) fn clear_cache(cache_root: &Path) -> Result<RemoteCacheUsage, String> {
+pub fn clear_cache(cache_root: &Path) -> Result<RemoteCacheUsage, String> {
     for entry in fs::read_dir(cache_root).map_err(|error| error.to_string())? {
         let entry = entry.map_err(|error| error.to_string())?;
         if entry
@@ -116,7 +116,7 @@ pub(crate) fn clear_cache(cache_root: &Path) -> Result<RemoteCacheUsage, String>
     cache_usage(cache_root)
 }
 
-pub(crate) fn choose_remote_playback_source(
+pub fn choose_remote_playback_source(
     // choose_remote_playback_source
     remote_uri: &str,
     cached_path: Option<String>,
@@ -141,7 +141,7 @@ pub(crate) fn choose_remote_playback_source(
     })
 }
 
-pub(crate) fn remote_playback_source(
+pub fn remote_playback_source(
     // remote_playback_source
     conn: &rusqlite::Connection,
     remote_uri: &str,
@@ -165,7 +165,7 @@ pub(crate) fn remote_playback_source(
     ))
 }
 
-pub(crate) async fn cache_remote_file(
+pub async fn cache_remote_file(
     // 实现
     cache_root: &Path,
     source: &RemoteSourceCredentials,
@@ -211,7 +211,7 @@ pub(crate) async fn cache_remote_file(
 }
 
 /// 确保远程文件已缓存，返回缓存路径并回写 `songs.cache_path`。
-pub(crate) async fn ensure_cached_path(
+pub async fn ensure_cached_path(
     // 实现
     cache_root: &Path,
     db_conn: Arc<Mutex<rusqlite::Connection>>,

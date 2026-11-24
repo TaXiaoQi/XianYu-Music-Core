@@ -4,7 +4,7 @@ use super::*;
 
 /// 协商创建 AAudio 流。独占：先试 Float32 失败再试 Int16；
 /// 共享：走系统混音器（默认设备），按实际协商出的格式回读。
-pub(crate) fn create_aaudio_stream(
+pub fn create_aaudio_stream(
     lib: &AAudioLib,
     device_id: i32,
     sample_rate: u32,
@@ -47,7 +47,7 @@ pub(crate) fn create_aaudio_stream(
 
 /// Bit-perfect 流协商：按源位深优先尝试整数格式（≤16bit→Int16，>16bit→Int24，
 /// 未知位深→Int16），失败回退 Int16 → Float32。实现「按源位深整数直出」。
-pub(crate) fn create_aaudio_stream_bitperfect(
+pub fn create_aaudio_stream_bitperfect(
     lib: &AAudioLib,
     device_id: i32,
     sample_rate: u32,
@@ -88,7 +88,7 @@ pub(crate) fn create_aaudio_stream_bitperfect(
 
 /// 探测源文件的每样本位深（bit），供 bit-perfect 整数格式协商。
 /// 支持 FLAC / WAVE / AIFF / MP4(M4A)-hdlr 位深。无法识别返回 None（回退 Int16）。
-pub(crate) fn probe_source_bit_depth(path: &str) -> Option<u8> {
+pub fn probe_source_bit_depth(path: &str) -> Option<u8> {
     use std::io::Read;
     let mut file = std::fs::File::open(path).ok()?;
     let mut head = [0u8; 64];
@@ -156,7 +156,7 @@ pub(crate) fn probe_source_bit_depth(path: &str) -> Option<u8> {
     None
 }
 
-pub(crate) unsafe fn try_open_stream(
+pub unsafe fn try_open_stream(
     lib: &AAudioLib,
     device_id: i32,
     sample_rate: u32,
@@ -205,7 +205,7 @@ pub(crate) unsafe fn try_open_stream(
 }
 
 /// AAudio 格式常量 → 管线字节转换格式；未知格式返回 None。
-pub(crate) fn device_format_of(format: i32) -> Option<DeviceFormat> {
+pub fn device_format_of(format: i32) -> Option<DeviceFormat> {
     match format {
         AAUDIO_FORMAT_PCM_FLOAT => Some(DeviceFormat::Float32),
         AAUDIO_FORMAT_PCM_I16 => Some(DeviceFormat::Int16),

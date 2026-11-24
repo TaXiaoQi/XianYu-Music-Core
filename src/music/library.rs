@@ -59,7 +59,7 @@ struct FolderViewSongRow {
     disc_number: Option<String>,
 }
 
-pub(crate) fn deserialize_string_list(raw: Option<String>) -> Vec<String> {
+pub fn deserialize_string_list(raw: Option<String>) -> Vec<String> {
     raw.and_then(|value| serde_json::from_str::<Vec<String>>(&value).ok())
         .unwrap_or_default()
 }
@@ -221,7 +221,7 @@ fn repair_stored_tag_list(values: Vec<String>) -> Vec<String> {
 /// Latin-1 误读后写进了 songs / artists / playback_session 表。对文本列做
 /// 确定性修复，仅更新发生变化的行。幂等：修复值是真·Unicode，重复执行
 /// 不再变动。
-pub(crate) fn repair_gbk_tag_mojibake(conn: &Connection) -> Result<(), String> {
+pub fn repair_gbk_tag_mojibake(conn: &Connection) -> Result<(), String> {
     // songs 表：展示字段 + 分组键 + 两个 JSON 名单列
     let mut stmt = conn
 		.prepare(

@@ -7,7 +7,7 @@ use std::sync::Arc;
 ///
 /// 桌面端由 tauri 的 `Emitter` 实现（推送 `library-scan-progress` / `library-scan-batch`
 /// 事件）；移动端可通过 FRB 回调实现，或传 `None` 静默扫描。
-pub(crate) trait ScanProgressSink: Send + Sync {
+pub trait ScanProgressSink: Send + Sync {
     fn on_progress(
         &self,
         phase: &'static str,
@@ -32,7 +32,7 @@ fn now_millis() -> u64 {
 }
 
 #[derive(Clone)] // 实现
-pub(crate) struct ScanProgressReporter {
+pub struct ScanProgressReporter {
     // 实现
     sink: Option<Arc<dyn ScanProgressSink>>,
     folder_path: String,

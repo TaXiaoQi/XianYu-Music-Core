@@ -14,14 +14,14 @@
 //!
 //! 拆分说明：临时文件读取见 temp_file，URL 探测见 url_probe，下载执行见 download。
 
-pub(crate) use sha2::{Digest, Sha256};
-pub(crate) use std::collections::HashMap;
-pub(crate) use std::fs::{File, OpenOptions};
-pub(crate) use std::io::{Read, Seek, SeekFrom, Write};
-pub(crate) use std::path::PathBuf;
-pub(crate) use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-pub(crate) use std::sync::{Arc, Mutex, OnceLock};
-pub(crate) use std::time::{Duration, SystemTime};
+pub use sha2::{Digest, Sha256};
+pub use std::collections::HashMap;
+pub use std::fs::{File, OpenOptions};
+pub use std::io::{Read, Seek, SeekFrom, Write};
+pub use std::path::PathBuf;
+pub use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+pub use std::sync::{Arc, Mutex, OnceLock};
+pub use std::time::{Duration, SystemTime};
 
 mod download;
 mod temp_file;
@@ -29,13 +29,13 @@ mod url_probe;
 
 pub use download::*;
 pub use temp_file::*;
-pub(crate) use url_probe::*;
+pub use url_probe::*;
 
 /// 清洗插件传入的 URL：移除首尾的反引号、引号、逗号等脏字符。
 ///
 /// 前端虽有 sanitizeMediaUrl，但部分插件返回的 URL 包装字符可能穿透到 Rust 端，
 /// 导致 reqwest 无法解析 URL 或请求到错误的地址。此处做最后一道防线。
-pub(crate) fn sanitize_stream_url(raw: &str) -> String {
+pub fn sanitize_stream_url(raw: &str) -> String {
     let trimmed = raw.trim();
     // 找到 http:// 或 https:// 的最早起始位置
     // 注意：必须同时搜索两者并取最小位置，避免 https:// URL 路径中包含 http:// 时匹配错误
@@ -132,7 +132,7 @@ pub fn decrypt_cenc_file(path: &std::path::Path, cek: &str) -> Result<(), String
 /// 配合 StreamingTempFileReader 的阻塞等待机制，即使播放追上下载进度也能平滑等待。
 pub const MIN_BUFFER_BYTES: u64 = 256 * 1024;
 
-pub(crate) struct CacheEntry {
+pub struct CacheEntry {
     path: PathBuf,
     size: u64,
     last_accessed: SystemTime,
@@ -148,7 +148,7 @@ pub(crate) struct CacheEntry {
     _download_handle: Option<std::thread::JoinHandle<()>>,
 }
 
-pub(crate) struct StreamCacheManager {
+pub struct StreamCacheManager {
     /// key = url_hash（文件名，也是持久化到磁盘的标识）
     entries: HashMap<String, CacheEntry>,
     max_size_bytes: u64,
@@ -248,7 +248,7 @@ impl StreamCacheManager {
 
 static STREAM_CACHE: OnceLock<Mutex<StreamCacheManager>> = OnceLock::new();
 
-pub(crate) fn cache() -> &'static Mutex<StreamCacheManager> {
+pub fn cache() -> &'static Mutex<StreamCacheManager> {
     STREAM_CACHE.get_or_init(|| {
         let mut mgr = StreamCacheManager {
             entries: HashMap::new(),
@@ -313,7 +313,7 @@ pub fn set_cache_dir_override(path: String) {
 /// 优先使用 Dart 侧设置的覆盖目录；
 /// Windows: %APPDATA%\com.xymusic.desktop\stream_cache\
 /// 其他平台: ~/com.xymusic.desktop/stream_cache/（回退 temp_dir）
-pub(crate) fn cache_dir() -> PathBuf {
+pub fn cache_dir() -> PathBuf {
     if let Some(cell) = CACHE_DIR_OVERRIDE.get() {
         if let Ok(guard) = cell.lock() {
             if let Some(dir) = guard.as_ref() {
@@ -338,7 +338,7 @@ pub(crate) fn cache_dir() -> PathBuf {
     dir
 }
 
-pub(crate) fn url_hash(url: &str) -> String {
+pub fn url_hash(url: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(url.as_bytes());
     hex::encode(&hasher.finalize()[..16])

@@ -4,7 +4,7 @@ use super::*;
 // 端点为综合搜索（歌曲/歌单/歌手/专辑混排），此处取 tracks 分组，cursor 为全局流偏移。
 // 以下参数组合已实测验证：UA 或 device_* 参数缺失时上游返回 ERR_INVALID_PARAM。
 const QS_PC_QUERY: &str = "aid=386088&app_name=luna_pc&region=cn&geo_region=cn&os_region=cn&sim_region=&device_id=3753066532709850&cdid=&iid=3753066532713946&version_name=3.5.2&version_code=30050200&channel=official&build_mode=master&network_carrier=&ac=wifi&tz_name=Asia/Shanghai&resolution=&device_platform=windows&device_type=Windows&os_version=Windows%2010&fp=3753066532709850";
-pub(crate) const QS_UA: &str = "LunaPC/3.5.2(412998333)";
+pub const QS_UA: &str = "LunaPC/3.5.2(412998333)";
 /// 单次取数的全局流窗口
 const QS_CURSOR_STEP: u32 = 20;
 /// 最多取数轮数（综合搜索的全局流通常 3~4 窗即耗尽）
@@ -129,7 +129,7 @@ async fn qs_fetch_tracks(keyword: &str, cursor: u32) -> Result<Vec<LxSearchItem>
 
 /// track_v2 / GetPlayInfo 归一化后的单档播放信息
 #[derive(Debug, Clone)]
-pub(crate) struct QsPlayEntry {
+pub struct QsPlayEntry {
     pub url: String,
     pub quality: String,
     pub bitrate: u64,
@@ -139,7 +139,7 @@ pub(crate) struct QsPlayEntry {
 
 /// 品质选择结果（quality 为 LX 档位）
 #[derive(Debug, Clone)]
-pub(crate) struct QsPlayPayload {
+pub struct QsPlayPayload {
     pub url: String,
     pub quality: String,
     pub bitrate: u64,
@@ -299,7 +299,7 @@ fn qs_payload_from(e: &QsPlayEntry, quality: &str) -> QsPlayPayload {
 }
 
 /// 品质选择：请求档精确命中 → rank 不高于请求档的最高者（并列取大 size）→ 全高于则取最低档
-pub(crate) fn qs_pick_play_info(list: &[QsPlayEntry], want_lx: &str) -> Option<QsPlayPayload> {
+pub fn qs_pick_play_info(list: &[QsPlayEntry], want_lx: &str) -> Option<QsPlayPayload> {
     if list.is_empty() {
         return None;
     }
@@ -370,7 +370,7 @@ fn spade_inner_transform(inner: &[u8]) -> Vec<u8> {
 
 /// PlayAuth（base64，来自 encrypt_info.spade_a）→ CENC 内容密钥（32 位 hex 字符串）。
 /// 解出失败返回 Err，调用方应丢弃 cek 走换源，不影响其他源。
-pub(crate) fn qs_play_auth_to_cek(play_auth: &str) -> Result<String, String> {
+pub fn qs_play_auth_to_cek(play_auth: &str) -> Result<String, String> {
     use base64::Engine;
     let bin = base64::engine::general_purpose::STANDARD
         .decode(play_auth.trim())
@@ -401,7 +401,7 @@ pub(crate) fn qs_play_auth_to_cek(play_auth: &str) -> Result<String, String> {
 
 /// 汽水原生取流：track_v2 → video_model 档列表（url_player_info 兜底）→ 按请求品质选档。
 /// 返回的 play_auth 由调用方用 qs_play_auth_to_cek 解为 CEK 交给播放器 CENC 通道。
-pub(crate) async fn qs_resolve_play(
+pub async fn qs_resolve_play(
     track_id: &str,
     quality: &str,
 ) -> Result<QsPlayPayload, String> {
@@ -443,7 +443,7 @@ pub(crate) async fn qs_resolve_play(
 }
 
 /// 汽水搜索：综合搜索每关键词仅少量歌曲，滚动全局流凑满 limit（不足即上游耗尽）
-pub(crate) async fn search_qs(keyword: &str, limit: u32) -> Result<Vec<LxSearchItem>, String> {
+pub async fn search_qs(keyword: &str, limit: u32) -> Result<Vec<LxSearchItem>, String> {
     let want = limit.max(1);
     let mut collected: Vec<LxSearchItem> = Vec::new();
     let mut seen = std::collections::HashSet::new();

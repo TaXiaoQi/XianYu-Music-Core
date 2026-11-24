@@ -23,15 +23,15 @@ mod qs;
 mod tx;
 mod wy;
 
-pub(crate) use kg::kg_filter_data_v3;
+pub use kg::kg_filter_data_v3;
 use kg::*;
 use kw::*;
 use mg::*;
 use qs::*;
-pub(crate) use qs::{qs_play_auth_to_cek, qs_resolve_play, QS_UA};
-pub(crate) use tx::tx_handle_result;
+pub use qs::{qs_play_auth_to_cek, qs_resolve_play, QS_UA};
+pub use tx::tx_handle_result;
 use tx::*;
-pub(crate) use tx::{random_5_digits, random_tx_guid};
+pub use tx::{random_5_digits, random_tx_guid};
 pub use tx::{tx_album_songs, tx_batch_track_interval, tx_search_albums};
 use wy::*;
 
@@ -60,14 +60,14 @@ pub struct LxSearchItem {
 /// 单页大小：搜索按 30/页翻页取数。各上游对单页 pageSize 上限不一
 /// （大 pagesize 单请求会被截断成 30~47 条不等，即「搜不到更多」的根因），
 /// 统一翻页拼取，limit≤30 时行为与原先单请求完全一致
-pub(crate) const SEARCH_PAGE_SIZE: u32 = 30;
+pub const SEARCH_PAGE_SIZE: u32 = 30;
 /// 最多翻页数：初始搜索 90 条（3 页），滚动加载更多逐步 +90（每档 3 页），
 /// 20 页（600 条/源）封顶——热门歌上游总数数千，全量拉取会触发风控且尾部
 /// 相关性早已无意义，600 条对搜索场景即"完整"
-pub(crate) const SEARCH_MAX_PAGES: u32 = 20;
+pub const SEARCH_MAX_PAGES: u32 = 20;
 
 /// 跨页去重键：songmid/hash 优先（同源唯一），缺省回退 name+singer+album
-pub(crate) fn search_dedup_key(it: &LxSearchItem) -> String {
+pub fn search_dedup_key(it: &LxSearchItem) -> String {
     if !it.songmid.is_empty() {
         return format!("{}:{}", it.source, it.songmid);
     }
@@ -82,7 +82,7 @@ pub(crate) fn search_dedup_key(it: &LxSearchItem) -> String {
 /// 按页取数拼满 target 条：顺序翻页，某页不足一页（末页）或失败即提前收敛；
 /// 已取得的页保留，全部失败才上抛首个错误。limit≤SEARCH_PAGE_SIZE 时仅请求 1 页。
 /// 每页结果写入按页缓存——加载更多以更大 limit 重取时旧页命中缓存、只拉新页
-pub(crate) async fn search_fill_pages<F, Fut>(
+pub async fn search_fill_pages<F, Fut>(
     source: &str,
     keyword: &str,
     target: u32,
@@ -248,7 +248,7 @@ pub async fn clear_lx_search_cache() {
     cache.clear();
 }
 
-pub(crate) fn format_play_time(seconds: f64) -> String {
+pub fn format_play_time(seconds: f64) -> String {
     if seconds.is_nan() || seconds <= 0.0 {
         return "00:00".to_string();
     }
@@ -304,7 +304,7 @@ fn wy_cover_url(album: &serde_json::Value) -> Option<String> {
     ))
 }
 
-pub(crate) fn size_formate(bytes: f64) -> String {
+pub fn size_formate(bytes: f64) -> String {
     if bytes <= 0.0 {
         return "0B".to_string();
     }
@@ -347,7 +347,7 @@ fn decode_numeric_entities(s: &str) -> String {
 }
 
 /// HTML 实体解码（覆盖常见命名实体 + 数字实体，前缀等价于前端 `he` 库的常用场景）
-pub(crate) fn decode_name(s: &str) -> String {
+pub fn decode_name(s: &str) -> String {
     let named = s
         .replace("&amp;", "&")
         .replace("&lt;", "<")
@@ -360,7 +360,7 @@ pub(crate) fn decode_name(s: &str) -> String {
 }
 
 /// 从歌手数组中提取歌手名（与前端 formatSingerName 一致）
-pub(crate) fn format_singer_name(singers: &serde_json::Value, name_key: &str) -> String {
+pub fn format_singer_name(singers: &serde_json::Value, name_key: &str) -> String {
     if let Some(arr) = singers.as_array() {
         let names: Vec<String> = arr
             .iter()
@@ -394,7 +394,7 @@ fn build_kuwo_cover_url(web_albumpic_short: &str, size: u32) -> Option<String> {
 }
 
 /// 构造酷狗封面 URL（替换 {size} 占位符并升级为 HTTPS）
-pub(crate) fn build_kugou_cover_url(url: &str, size: u32) -> Option<String> {
+pub fn build_kugou_cover_url(url: &str, size: u32) -> Option<String> {
     let u = url.trim();
     if u.is_empty() {
         return None;
@@ -409,7 +409,7 @@ pub(crate) fn build_kugou_cover_url(url: &str, size: u32) -> Option<String> {
 /// 保持默认 TLS 证书校验，避免搜索和解析链路被中间人篡改。
 static HTTP_CLIENT: OnceLock<Result<reqwest::Client, String>> = OnceLock::new();
 
-pub(crate) fn http_client() -> &'static Result<reqwest::Client, String> {
+pub fn http_client() -> &'static Result<reqwest::Client, String> {
     HTTP_CLIENT.get_or_init(|| {
         reqwest::Client::builder()
             .timeout(Duration::from_secs(15))
@@ -420,7 +420,7 @@ pub(crate) fn http_client() -> &'static Result<reqwest::Client, String> {
     })
 }
 
-pub(crate) async fn http_get_json(
+pub async fn http_get_json(
     url: &str,
     headers: &[(&str, &str)],
 ) -> Result<serde_json::Value, String> {
@@ -429,7 +429,7 @@ pub(crate) async fn http_get_json(
 }
 
 /// GET 请求返回原始响应文本（酷我 rid_pic 封面接口为纯文本响应）
-pub(crate) async fn http_get_text(url: &str, headers: &[(&str, &str)]) -> Result<String, String> {
+pub async fn http_get_text(url: &str, headers: &[(&str, &str)]) -> Result<String, String> {
     let client = http_client().as_ref().map_err(|e| e.clone())?;
     let mut req = client.get(url);
     for (key, value) in headers {
@@ -446,7 +446,7 @@ pub(crate) async fn http_get_text(url: &str, headers: &[(&str, &str)]) -> Result
     Ok(body)
 }
 
-pub(crate) async fn http_post_json(
+pub async fn http_post_json(
     url: &str,
     body: &str,
     headers: &[(&str, &str)],
@@ -489,7 +489,7 @@ fn pick_hash_by_idx(hash: &str, indexes: &[usize]) -> String {
 }
 
 /// TX 签名（与前端 zzcSign 一致）
-pub(crate) fn zzc_sign(text: &str) -> String {
+pub fn zzc_sign(text: &str) -> String {
     let hash = sha1_hex(text);
     let part1 = pick_hash_by_idx(&hash, &TX_PART_1_INDEXES);
     let part2 = pick_hash_by_idx(&hash, &TX_PART_2_INDEXES);
@@ -512,7 +512,7 @@ pub(crate) fn zzc_sign(text: &str) -> String {
     format!("zzc{}{}{}", part1, b64_clean, part2).to_lowercase()
 }
 
-pub(crate) fn mg_create_signature(time: &str, text: &str) -> (String, String) {
+pub fn mg_create_signature(time: &str, text: &str) -> (String, String) {
     let device_id = "963B7AA0D21511ED807EE5846EC87D20";
     let signature_md5 = "6cdc72a439cef99a3418d2a78aa28c73";
     let input = format!(

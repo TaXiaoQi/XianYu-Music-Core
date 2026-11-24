@@ -192,7 +192,7 @@ pub fn start_streaming_download(
 /// 然后递归搜索任意层级的字符串值中以 http:// 或 https:// 开头且含音频扩展名的链接。
 /// 最后回退到任意 HTTP URL（不检查音频特征），并搜索 ekey 字段。
 
-pub(crate) fn apply_stream_request_headers(
+pub fn apply_stream_request_headers(
     mut req: reqwest::RequestBuilder,
     headers: Option<&std::collections::HashMap<String, String>>,
     user_agent: Option<&str>,

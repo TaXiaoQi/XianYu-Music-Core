@@ -87,7 +87,7 @@ fn record_eof_diag(r: &StreamingTempFileReader, reason: &str) {
 /// 读取并清除最近一次 reader EOF 快照（decoder UnexpectedEof 时拼接诊断）。
 /// 唯一调用方是 android_aaudio/ohos_audio/coreaudio 共用的解码线程，宿主编译门控掉避免 dead_code 警告。
 #[cfg(any(target_os = "android", target_env = "ohos", target_os = "ios"))]
-pub(crate) fn take_eof_diag() -> Option<String> {
+pub fn take_eof_diag() -> Option<String> {
     let slot = LAST_EOF_DIAG.get_or_init(|| std::sync::Mutex::new(None));
     slot.lock().ok().and_then(|mut g| g.take())
 }

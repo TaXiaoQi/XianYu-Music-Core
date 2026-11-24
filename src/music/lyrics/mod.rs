@@ -14,16 +14,16 @@ mod semantic;
 mod tracks;
 mod types;
 
-pub(crate) use io::decode_lyrics_file_bytes;
+pub use io::decode_lyrics_file_bytes;
 pub use io::{
     get_song_lyrics, get_song_lyrics_for_edit, get_song_lyrics_payload, read_lyrics_file,
     save_song_lyrics,
 };
-pub(crate) use lx_convert::*;
-pub(crate) use parse::*;
-pub(crate) use semantic::*;
-pub(crate) use tracks::*;
-pub(crate) use types::*;
+pub use lx_convert::*;
+pub use parse::*;
+pub use semantic::*;
+pub use tracks::*;
+pub use types::*;
 
 #[cfg(test)]
 mod tests {

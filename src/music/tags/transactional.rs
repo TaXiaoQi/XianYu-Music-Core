@@ -16,7 +16,7 @@ static TAG_WRITE_LOCK: Mutex<()> = Mutex::new(());
 const COPY_BUFFER: usize = 1024 * 1024;
 const MAX_BLOCK: usize = 0xff_ffff;
 
-pub(crate) fn edit_tags(
+pub fn edit_tags(
     path: &Path,
     edit: impl FnOnce(&mut TaggedFile) -> Result<(), String>,
 ) -> Result<(), String> {

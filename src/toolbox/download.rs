@@ -2,7 +2,7 @@
 
 use super::*;
 
-pub(crate) const DOWNLOAD_HISTORY_FILE: &str = "download_history.json";
+pub const DOWNLOAD_HISTORY_FILE: &str = "download_history.json";
 
 /// 在线歌曲下载进度负载。
 #[derive(serde::Serialize, Clone, Debug)]
@@ -284,7 +284,7 @@ pub async fn finalize_download_extras(
     Ok(result)
 }
 
-pub(crate) fn download_history_path(data_dir: &Path) -> Result<PathBuf, String> {
+pub fn download_history_path(data_dir: &Path) -> Result<PathBuf, String> {
     Ok(data_dir.join(DOWNLOAD_HISTORY_FILE))
 }
 

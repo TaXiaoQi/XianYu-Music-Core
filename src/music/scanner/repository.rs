@@ -387,7 +387,7 @@ fn cleanup_unused_artists(conn: &mut rusqlite::Connection) {
     .ok();
 }
 
-pub(crate) fn apply_scan_changes(
+pub fn apply_scan_changes(
     // apply_scan_changes
     conn: &mut rusqlite::Connection,
     to_add: &[Song],
@@ -454,7 +454,7 @@ pub(crate) fn apply_scan_changes(
 
 /// 把本轮扫描中未通过时长/体积门槛的歌曲标记为 excluded（保留记录、不物理删除），
 /// 通过的清除标记。这样调整过滤阈值后可立即恢复，无需重新解析文件。
-pub(crate) fn mark_scan_exclusions(
+pub fn mark_scan_exclusions(
     conn: &mut rusqlite::Connection,
     to_include: &[String],
     to_exclude: &[String],
