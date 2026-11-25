@@ -106,6 +106,55 @@ pub fn is_network_share_path(path_str: &str) -> bool { // is_network_share_path
   false
 }
 
+// ---- 路径匹配键（大小写不敏感比较，供端侧 UI 归属判断使用） ----
+//
+// 与 normalize_path（文件系统 canonicalize，取真实大小写）不同：
+// 这组函数是纯字符串比较语义——反斜杠→正斜杠、去尾部斜杠、转小写。
+// 端侧（Tauri 前端命令等）用它判断「歌曲是否属于某文件夹」「曲库根归属」，
+// 规则必须只有一处实现，避免前端自行维护分隔符/大小写逻辑后产生分歧。
+
+/// 归一化为大小写不敏感的比较键：`\`→`/`、去掉尾部连续 `/`、转小写。
+pub fn path_match_key(path_str: &str) -> String {
+  let trimmed = path_str.trim();
+  let flipped = trimmed.replace('\\', "/");
+  let stripped = flipped.trim_end_matches('/');
+  stripped.to_lowercase()
+}
+
+/// candidate 归一化后与 root 相同，或位于 root 目录内部（`root/` 前缀且目录边界对齐）。
+pub fn path_within_root_scope(candidate: &str, root: &str) -> bool {
+  let scoped_root = path_match_key(root);
+  let normalized_candidate = path_match_key(candidate);
+  normalized_candidate == scoped_root
+    || normalized_candidate.starts_with(&format!("{scoped_root}/"))
+}
+
+/// candidate 归一化后以 root 归一化结果为前缀（不要求目录边界对齐）。
+pub fn path_under_root_prefix(candidate: &str, root: &str) -> bool {
+  path_match_key(candidate).starts_with(&path_match_key(root))
+}
+
+/// 在根路径列表中找出包含 target_path 的最深根目录（归一化路径最长者）。
+/// 多个根同时命中且长度并列时，保持列表原始顺序（取先出现者）。
+pub fn find_deepest_owning_root<'a>(root_paths: &[&'a str], target_path: &str) -> Option<&'a str> {
+  let mut deepest: Option<&'a str> = None;
+  let mut deepest_length = -1i64;
+
+  for root_path in root_paths {
+    if !path_within_root_scope(target_path, root_path) {
+      continue;
+    }
+
+    let root_length = path_match_key(root_path).len() as i64;
+    if root_length > deepest_length {
+      deepest = Some(root_path);
+      deepest_length = root_length;
+    }
+  }
+
+  deepest
+}
+
 // ---- SQL LIKE 辅助 ----
 
 /// 转义 LIKE 通配符，配合 `ESCAPE '^'` 使用。
@@ -232,7 +281,10 @@ pub fn format_distribution_bucket( // format_distribution_bucket
 
 #[cfg(test)]
 mod path_tests {
-  use super::{is_network_share_path, legacy_unc_path, strip_windows_path_prefixes};
+  use super::{
+    find_deepest_owning_root, is_network_share_path, legacy_unc_path, path_match_key,
+    path_under_root_prefix, path_within_root_scope, strip_windows_path_prefixes,
+  };
 
   #[test]
   fn verbatim_unc_prefix_becomes_plain_unc() {
@@ -260,5 +312,44 @@ mod path_tests {
     assert!(is_network_share_path(r"\\?\UNC\NAS\Music\song.flac"));
     assert!(is_network_share_path("//NAS/Music/song.flac"));
     assert!(!is_network_share_path(r"C:\Music\song.flac"));
+  }
+
+  #[test]
+  fn match_key_is_case_insensitive_and_separator_uniform() {
+    assert_eq!(path_match_key(r"C:\Music\A\song.flac"), "c:/music/a/song.flac");
+    assert_eq!(path_match_key("C:/Music/A/"), "c:/music/a");
+    assert_eq!(path_match_key("C:/Music/A///"), "c:/music/a");
+    assert_eq!(path_match_key(""), "");
+  }
+
+  #[test]
+  fn within_root_scope_requires_directory_boundary() {
+    assert!(path_within_root_scope(r"C:\Music", "C:/Music"));
+    assert!(path_within_root_scope(r"C:\Music\a.flac", "C:/Music"));
+    assert!(path_within_root_scope(r"C:\MUSIC\Sub\b.flac", r"c:\music"));
+    // 目录边界不应对齐：/Music2 不能算在 /Music 内
+    assert!(!path_within_root_scope(r"C:\Music2\a.flac", "C:/Music"));
+    assert!(!path_within_root_scope(r"D:\Music\a.flac", "C:/Music"));
+  }
+
+  #[test]
+  fn under_root_prefix_allows_partial_segment() {
+    assert!(path_under_root_prefix(r"C:\Music2", r"C:\Music"));
+    assert!(!path_under_root_prefix(r"D:\Music2", r"C:\Music"));
+  }
+
+  #[test]
+  fn deepest_owning_root_prefers_longest_match() {
+    let roots = [r"D:\Library", r"D:\Library\Classical"];
+    assert_eq!(
+      find_deepest_owning_root(&roots, r"d:\library\classical\beethoven.flac"),
+      Some(r"D:\Library\Classical")
+    );
+    assert_eq!(
+      find_deepest_owning_root(&roots, r"d:\library\pop\a.flac"),
+      Some(r"D:\Library")
+    );
+    // 并列长度保持原始顺序；无命中返回 None
+    assert_eq!(find_deepest_owning_root(&roots, r"E:\Elsewhere\a.flac"), None);
   }
 }
