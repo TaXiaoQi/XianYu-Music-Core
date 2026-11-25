@@ -174,9 +174,41 @@ pub fn sha256_hex(text: &str) -> String {
     hex::encode(Sha256::digest(text.as_bytes()))
 }
 
+/// 歌单同步 v2 协议 song_hash（与 Server song_diff_key 回退式对齐）：
+/// 在线曲目 = `md5(path)`；本地曲目 = `md5(name|artist|local)`。
+/// 在线/本地的分类由端侧判定（远端/插件/协议头等），此处只做协议哈希：
+/// 端侧判定为在线时传 `Some(path)`，否则传 `None`。
+/// 该协议此前在桌面 TS 与移动 Dart 各写一份，现单点化到 Core。
+pub fn playlist_song_hash(path: Option<&str>, name: &str, artist: &str) -> String {
+    match path {
+        Some(p) if !p.is_empty() => format!("{:x}", md5::compute(p.as_bytes())),
+        _ => format!("{:x}", md5::compute(format!("{name}|{artist}|local").as_bytes())),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_playlist_song_hash_protocol() {
+        // 在线：md5(path)
+        assert_eq!(
+            playlist_song_hash(Some("lx://kg/abc123"), "", ""),
+            format!("{:x}", md5::compute("lx://kg/abc123".as_bytes()))
+        );
+        // 本地：md5(name|artist|local)（与移动端 playlist_sync_ops.dart、
+        // 桌面旧版 computeSongHash 的输出完全一致）
+        assert_eq!(
+            playlist_song_hash(None, "Song A", "歌手B"),
+            format!("{:x}", md5::compute("Song A|歌手B|local".as_bytes()))
+        );
+        // 在线分类但 path 为空 → 回退本地协议
+        assert_eq!(
+            playlist_song_hash(Some(""), "Song A", "歌手B"),
+            playlist_song_hash(None, "Song A", "歌手B")
+        );
+    }
 
     #[test]
     fn test_zzc_sign() {

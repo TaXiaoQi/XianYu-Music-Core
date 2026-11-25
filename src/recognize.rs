@@ -115,10 +115,17 @@ fn md5_compute(input: &[u8]) -> [u8; 16] {
 /// Android 版签名盐值（标准版）
 const ANDROID_SALT: &str = "OIlwieks28dk2k092lksi2UIkp"; // 实现
 
-/// 生成设备 mid（运行时固定，由稳定种子计算得来）
-fn device_mid() -> String {
-    // device_mid
-    md5_hex(b"xy-music-desktop-recognize-device-v1")
+/// 生成设备 mid（运行时固定，由稳定种子计算得来）。
+/// 默认种子为 Core 版字符串；桌面端曾用不同种子
+/// （`xianyu-music-desktop-recognize-device-v1`），宿主可用
+/// [`device_mid_with_seed`] 传入自有种子保持既有设备身份。
+pub fn device_mid_with_seed(seed: &str) -> String {
+    md5_hex(seed.as_bytes())
+}
+
+/// 生成设备 mid（默认种子）。
+pub fn device_mid() -> String {
+    device_mid_with_seed("xy-music-desktop-recognize-device-v1")
 }
 
 /// 构建签名参数字符串：按 key 字典序排序，拼接为 `k1=v1k2=v2...`
@@ -132,7 +139,7 @@ fn build_params_string(params: &BTreeMap<String, String>) -> String {
 }
 
 /// 生成酷狗 Android 签名 `signature = MD5(salt + paramsString + pcmBytes + salt)`
-fn sign_android(params: &BTreeMap<String, String>, pcm: &[u8]) -> String {
+pub fn sign_android(params: &BTreeMap<String, String>, pcm: &[u8]) -> String {
     // sign_android
     let params_string = build_params_string(params);
     let salt = ANDROID_SALT.as_bytes();
