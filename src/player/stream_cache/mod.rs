@@ -12,7 +12,8 @@
 //! 5. 缓存持久化到 app_data_dir，重启后自动扫描重建索引
 //! 6. LRU 策略淘汰旧缓存，上限用户可配置
 //!
-//! 拆分说明：临时文件读取见 temp_file，URL 探测见 url_probe，下载执行见 download。
+//! 拆分说明：临时文件读取见 temp_file，URL 探测见 url_probe，下载执行见 download，
+//! 完成文件的 CENC 就地解密见 decrypt。
 
 pub use sha2::{Digest, Sha256};
 pub use std::collections::HashMap;
@@ -26,6 +27,7 @@ pub use std::time::{Duration, SystemTime};
 mod download;
 mod temp_file;
 mod url_probe;
+pub mod decrypt;
 
 pub use download::*;
 pub use temp_file::*;
