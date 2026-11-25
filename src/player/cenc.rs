@@ -382,6 +382,8 @@ fn compute_sample_offsets(stsc: &[(u32, u32, u32)], stco: &[u64], stsz: &[u32]) 
 
 /// AES-128-CTR 解密一段数据。
 /// 计数器块 = IV(前 iv_len 字节，不足补零) + 块计数器(大端，从 0 递增)。
+/// 仅测试夹具使用（测试用它加密样本、运行时走 decrypt_cenc_in_place）。
+#[cfg(test)]
 fn aes_ctr_decrypt(cek: &[u8], iv: &[u8], data: &mut [u8]) {
     let cipher = match Aes128::new_from_slice(cek) {
         Ok(c) => c,
