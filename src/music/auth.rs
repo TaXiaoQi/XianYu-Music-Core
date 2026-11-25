@@ -16,13 +16,19 @@ use std::time::Duration;
 
 /// 默认 API 签名密钥。自建后端可在客户端账号设置页覆盖。
 /// 2026-10-28 轮换（渗透报告 V-01：旧密钥随源码泄露），服务端过渡期双钥兼容。
-const DEFAULT_API_SECRET: &str = "a27202b5acbd9b277a15ccbfb9d7b9232599842b7d08d66d";
+pub const DEFAULT_API_SECRET: &str = "a27202b5acbd9b277a15ccbfb9d7b9232599842b7d08d66d";
 
-/// 历史内置默认密钥：落盘文件中检测到这些值时视为过期，迁移为当前默认。
-const LEGACY_DEFAULT_API_SECRETS: [&str; 1] = ["acca7562ecaf830fcce45814f110eacea83ecf9cf52320c3"];
+/// 历史版本内置过的默认密钥。旧版「保存/恢复默认后端连接」会把当时的默认值
+/// 写入 api_secret.txt（set_auth_api_secret('') 落盘的是旧默认），升级换代后
+/// 该残留会一直压住新内置默认值，签名 403 且只能卸载重装恢复。读取时命中
+/// 即视为过期残留：忽略并删除。每次轮换默认密钥时，把上一代默认值追加进来。
+pub const LEGACY_DEFAULT_API_SECRETS: [&str; 2] = [
+    "bf027fedb4d1b4f969c10495f12f17042bf0de02de128200",
+    "acca7562ecaf830fcce45814f110eacea83ecf9cf52320c3",
+];
 
 /// api_secret.txt 的残留值是否应被忽略（空白、当前默认或历史默认）。
-fn is_stale_saved_secret(saved: &str) -> bool {
+pub fn is_stale_saved_secret(saved: &str) -> bool {
     let saved = saved.trim();
     saved.is_empty() || saved == DEFAULT_API_SECRET || LEGACY_DEFAULT_API_SECRETS.contains(&saved)
 }
@@ -31,7 +37,7 @@ fn is_stale_saved_secret(saved: &str) -> bool {
 const OFFICIAL_AUTH_BASE_URL: &str = "https://api.xianyumusic.cn/api";
 
 /// 默认后端地址：仅支持 HTTPS，避免 Nginx 重定向丢失 POST 请求体
-const DEFAULT_AUTH_BASE_URL: &str = OFFICIAL_AUTH_BASE_URL;
+pub const DEFAULT_AUTH_BASE_URL: &str = OFFICIAL_AUTH_BASE_URL;
 
 /// token 文件名
 const TOKEN_FILE: &str = "auth-token.txt";
@@ -60,10 +66,12 @@ fn http_client() -> &'static Result<reqwest::Client, String> {
 
 // ─── 辅助结构 ──────────────────────────────────────────
 
-struct SignedHeaders {
-    timestamp: String,
-    nonce: String,
-    sign: String,
+/// 带签名的请求头三元组（X-Timestamp / X-Nonce / X-Sign）。
+/// 端侧 HTTP 栈各异（桌面走系统代理、移动/共享直连），签名头由共享层生成。
+pub struct SignedHeaders {
+    pub timestamp: String,
+    pub nonce: String,
+    pub sign: String,
 }
 
 /// 生成随机 nonce（32 位十六进制字符串）
@@ -72,7 +80,7 @@ fn generate_nonce() -> String {
 }
 
 /// 计算签名并返回带签名的请求头信息（timestamp 由调用方传入，可含时间偏移校准）
-fn build_signed_headers(body: &str, api_secret: &str, timestamp: i64) -> SignedHeaders {
+pub fn build_signed_headers(body: &str, api_secret: &str, timestamp: i64) -> SignedHeaders {
     use hmac::Mac;
     let nonce = generate_nonce();
     let mut mac =
@@ -87,7 +95,7 @@ fn build_signed_headers(body: &str, api_secret: &str, timestamp: i64) -> SignedH
 }
 
 /// 本地时钟（秒）
-fn local_now_secs() -> i64 {
+pub fn local_now_secs() -> i64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
@@ -95,7 +103,7 @@ fn local_now_secs() -> i64 {
 }
 
 /// 解析 HTTP Date 头（RFC 7231 IMF-fixdate，如 `Wed, 10 Sep 2026 06:34:48 GMT`）为 epoch 秒
-fn parse_http_date(s: &str) -> Option<i64> {
+pub fn parse_http_date(s: &str) -> Option<i64> {
     const MONTHS: [&str; 12] = [
         "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
     ];
@@ -203,11 +211,9 @@ fn read_api_secret(data_dir: &Path) -> String {
                     .trim()
                     .to_string();
                 if is_stale_saved_secret(&saved) {
-                    // 历史版本会把内置默认密钥写入文件（明文落盘）；
-                    // 检测到文件内容为默认值或历史默认值时删除文件迁移为内置默认
-                    if saved != DEFAULT_API_SECRET {
-                        let _ = fs::remove_file(&path);
-                    }
+                    // 过期残留（空/当前默认/历史默认）：删除文件，回落到内置默认。
+                    // 删除失败不影响本次读取（下次启动会再试）。
+                    let _ = fs::remove_file(&path);
                     DEFAULT_API_SECRET.to_string()
                 } else {
                     saved
@@ -599,6 +605,37 @@ pub fn set_auth_api_secret(data_dir: &Path, api_secret: String) -> Result<(), St
 /// 获取当前 API 签名密钥。
 pub fn get_auth_api_secret(data_dir: &Path) -> Result<String, String> {
     Ok(read_api_secret(data_dir))
+}
+
+#[cfg(test)]
+mod api_secret_tests {
+    use super::*;
+
+    #[test]
+    fn empty_saved_secret_is_stale() {
+        assert!(is_stale_saved_secret(""));
+        assert!(is_stale_saved_secret("   "));
+    }
+
+    #[test]
+    fn legacy_default_secret_is_stale() {
+        // 2.0.1 及更早的内置默认密钥：升级用户盘上最常见的残留值
+        assert!(is_stale_saved_secret("bf027fedb4d1b4f969c10495f12f17042bf0de02de128200"));
+        // 2026-10-28 轮换前的默认密钥
+        assert!(is_stale_saved_secret("acca7562ecaf830fcce45814f110eacea83ecf9cf52320c3"));
+    }
+
+    #[test]
+    fn current_default_secret_is_stale() {
+        assert!(is_stale_saved_secret(DEFAULT_API_SECRET));
+    }
+
+    #[test]
+    fn custom_secret_is_kept() {
+        // 自建服务器用户手填的密钥必须原样保留
+        assert!(!is_stale_saved_secret("my-private-server-key"));
+        assert!(!is_stale_saved_secret("bf027fedb4d1b4f969c10495f12f17042bf0de02de1282x"));
+    }
 }
 
 #[cfg(test)]
